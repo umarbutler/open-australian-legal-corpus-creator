@@ -1,4 +1,5 @@
 # **Open Australian Legal Corpus Creator**
+
 This repository is intended to preserve the code used to create the [Open Australian Legal Corpus](https://huggingface.co/datasets/umarbutler/open-australian-legal-corpus), the first and only multijurisdictional open corpus of Australian legislative and judicial documents. To download the Corpus, please visit the [HuggingFace Datasets repository](https://huggingface.co/datasets/umarbutler/open-australian-legal-corpus). Otherwise, if you are looking to replicate the Corpus, read on.
 
 ## Usage
@@ -25,7 +26,7 @@ If you rely on this codebase or the Corpus, please cite:
     year = {2023},
     title = {Open Australian Legal Corpus},
     publisher = {Hugging Face},
-    version = {1.0.0},
+    version = {2.0.0},
     doi = {10.57967/hf/0812},
     url = {https://huggingface.co/datasets/umarbutler/open-australian-legal-corpus}
 }
