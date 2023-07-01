@@ -9,6 +9,7 @@ import pytz
 import datetime
 import orjson
 import itertools
+import re
 from contextlib import nullcontext
 
 _INSCRIPTIS_CONFIG = inscriptis.model.config.ParserConfig(inscriptis.css_profiles.CSS_PROFILES['strict'])
@@ -35,10 +36,16 @@ def get_search(search_base, lock=nullcontext()):
 def get_document(url, lock=nullcontext()):
     try:
         if '<span id="view-whole">' in (data:=_session.request('GET', url).data.decode('utf-8').replace('&#150;', '&#8211;')):
+            etree = lxml.html.document_fromstring(data)
+
+            citation = re.sub(r' No \d+$', '', etree.xpath('//h1[@class="title"]')[0].text)
+            citation = f'{citation} (Tas)'
+
             document = {
-                'text' : inscriptis.Inscriptis(lxml.html.document_fromstring(data).xpath('//div[@id="fragview"]')[0], _INSCRIPTIS_CONFIG).get_text(),
+                'text' : inscriptis.Inscriptis(etree.xpath('//div[@id="fragview"]')[0], _INSCRIPTIS_CONFIG).get_text(),
                 'type' : 'primary_legislation' if url.split('/')[-1].split('-')[0] == 'act' else 'secondary_legislation',
                 'source' : 'tasmanian_legislation',
+                'citation' : citation,
                 'url' : url
             }
 

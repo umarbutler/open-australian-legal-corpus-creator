@@ -27,10 +27,16 @@ def get_search(index_url, lock=nullcontext()):
 
 def get_document(type_and_url, lock=nullcontext()):
     try:
+        etree = lxml.html.document_fromstring(_session.request('GET', type_and_url[1]).data.decode('utf-8'))
+        
+        citation = etree.xpath('//span[@class="NameofActReg-H"]')[0].text.replace('\xa0', ' ')
+        citation = f'{citation} (WA)'
+
         document = {
-            'text' : inscriptis.Inscriptis(lxml.html.document_fromstring(_session.request('GET', type_and_url[1]).data.decode('utf-8')), _INSCRIPTIS_CONFIG).get_text(),
+            'text' : inscriptis.Inscriptis(etree, _INSCRIPTIS_CONFIG).get_text(),
             'type' : type_and_url[0],
             'source' : 'western_australian_legislation',
+            'citation' : citation,
             'url' : type_and_url[1]
         }
 

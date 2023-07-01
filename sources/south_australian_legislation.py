@@ -29,7 +29,8 @@ def get_document(path, lock=nullcontext()):
             'text' : striprtf.striprtf.rtf_to_text(open(path, 'r', encoding='cp1252').read(), encoding='cp1252', errors='ignore'),
             'type' : 'primary_legislation' if '/A/' in path else 'secondary_legislation',
             'source' : 'south_australian_legislation',
-            'url' : f'https://www.legislation.sa.gov.au/__legislation/lz/c{path.split("south_australian_legislation")[1].lower()}'
+            'citation' : f"{path.split('south_australian_legislation')[1].split('/')[2]} (SA)",
+            'url' : f'https://www.legislation.sa.gov.au/__legislation/lz/c{path.split("south_australian_legislation")[1].lower()}'.replace(' ', '%20')
         }
         
         with lock:

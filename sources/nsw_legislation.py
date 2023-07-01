@@ -46,10 +46,14 @@ def get_document(url, lock=nullcontext()):
 
             text_element = etree.xpath('//div[@id="frag-col"]')
 
+            citation = re.sub(r' No \d+$', '', etree.xpath('//h1[@class="title"]')[0].text)
+            citation = f'{citation} (NSW)'
+
             document = {
                     'text' : inscriptis.Inscriptis(text_element[0], _INSCRIPTIS_CONFIG).get_text(),
                     'type' : 'primary_legislation' if '/act-' in url else 'secondary_legislation',
                     'source' : 'nsw_legislation',
+                    'citation' : citation,
                     'url' : url
                 }
 

@@ -100,7 +100,8 @@ def get_document(type_and_url, lock=nullcontext()):
 
         # Ignore index errors raised by attempting to parse pages that do not contain text but instead link to PDFs.
         try:
-            text = inscriptis.Inscriptis(lxml.html.document_fromstring(response).xpath('//div[@id="MainContent_pnlHtmlControls"]')[0], _INSCRIPTIS_CONFIG).get_text()
+            etree = lxml.html.document_fromstring(response)
+            text = inscriptis.Inscriptis(etree.xpath('//div[@id="MainContent_pnlHtmlControls"]')[0], _INSCRIPTIS_CONFIG).get_text()
 
         except IndexError:
             with lock: orjsonl.append('indices/downloaded.jsonl', [['federal_register_of_legislation', type_and_url]])
@@ -118,6 +119,7 @@ def get_document(type_and_url, lock=nullcontext()):
             'text' : text,
             'type' : type_,
             'source' : 'federal_register_of_legislation',
+            'citation' : f"""{etree.xpath("//meta[@name='DC.Title']/@content")[0]} (Cth)""",
             'url' : type_and_url[1],
         }
 
