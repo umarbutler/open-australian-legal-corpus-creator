@@ -47,7 +47,7 @@ def get_document(url, lock=nullcontext()):
             etree = lxml.html.document_fromstring(data)
 
             citation = re.sub(r' No \d+$', '', etree.xpath('//h1[@class="title"]')[0].text)
-            citation = f'{citation} (Qld)'
+            citation = ' '.join(f'{citation} (Qld)'.split())
             
             document = {
                 'text' : inscriptis.Inscriptis(etree.xpath('//div[@id="fragview"]')[0], _INSCRIPTIS_CONFIG).get_text(),

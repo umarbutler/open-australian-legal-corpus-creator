@@ -119,7 +119,7 @@ def get_document(type_and_url, lock=nullcontext()):
             'text' : text,
             'type' : type_,
             'source' : 'federal_register_of_legislation',
-            'citation' : f"""{etree.xpath("//meta[@name='DC.Title']/@content")[0]} (Cth)""",
+            'citation' : ' '.join(f"""{etree.xpath("//meta[@name='DC.Title']/@content")[0]} (Cth)""".split()),
             'url' : type_and_url[1],
         }
 

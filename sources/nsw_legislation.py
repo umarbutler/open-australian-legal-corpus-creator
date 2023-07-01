@@ -47,7 +47,7 @@ def get_document(url, lock=nullcontext()):
             text_element = etree.xpath('//div[@id="frag-col"]')
 
             citation = re.sub(r' No \d+$', '', etree.xpath('//h1[@class="title"]')[0].text)
-            citation = f'{citation} (NSW)'
+            citation = ' '.join(f'{citation} (NSW)'.split())
 
             document = {
                     'text' : inscriptis.Inscriptis(text_element[0], _INSCRIPTIS_CONFIG).get_text(),
