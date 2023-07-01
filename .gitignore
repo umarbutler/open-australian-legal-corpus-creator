@@ -166,3 +166,4 @@ cython_debug/
 indices/
 *.code-workspace
 *.vscode
+corpus.jsonl
