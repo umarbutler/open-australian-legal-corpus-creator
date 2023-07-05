@@ -52,6 +52,7 @@ def get_document(url, lock=nullcontext()):
             document = {
                     'text' : inscriptis.Inscriptis(text_element[0], _INSCRIPTIS_CONFIG).get_text(),
                     'type' : 'primary_legislation' if '/act-' in url else 'secondary_legislation',
+                    'jurisdiction' : 'new_south_wales',
                     'source' : 'nsw_legislation',
                     'citation' : citation,
                     'url' : url

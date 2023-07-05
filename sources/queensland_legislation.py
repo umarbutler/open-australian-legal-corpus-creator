@@ -52,6 +52,7 @@ def get_document(url, lock=nullcontext()):
             document = {
                 'text' : inscriptis.Inscriptis(etree.xpath('//div[@id="fragview"]')[0], _INSCRIPTIS_CONFIG).get_text(),
                 'type' : type_,
+                'jurisdiction' : 'queensland',
                 'source' : 'queensland_legislation',
                 'citation' : citation,
                 'url' : url

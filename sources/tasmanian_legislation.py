@@ -44,6 +44,7 @@ def get_document(url, lock=nullcontext()):
             document = {
                 'text' : inscriptis.Inscriptis(etree.xpath('//div[@id="fragview"]')[0], _INSCRIPTIS_CONFIG).get_text(),
                 'type' : 'primary_legislation' if url.split('/')[-1].split('-')[0] == 'act' else 'secondary_legislation',
+                'jurisdiction' : 'tasmania',
                 'source' : 'tasmanian_legislation',
                 'citation' : citation,
                 'url' : url

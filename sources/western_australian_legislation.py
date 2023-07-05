@@ -35,6 +35,7 @@ def get_document(type_and_url, lock=nullcontext()):
         document = {
             'text' : inscriptis.Inscriptis(etree, _INSCRIPTIS_CONFIG).get_text(),
             'type' : type_and_url[0],
+            'jurisdiction' : 'western_australia',
             'source' : 'western_australian_legislation',
             'citation' : citation,
             'url' : type_and_url[1]

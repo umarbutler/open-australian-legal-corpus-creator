@@ -108,19 +108,25 @@ def get_document(type_and_url, lock=nullcontext()):
             return
 
         citation = ' '.join(etree.xpath("//meta[@name='DC.Title']/@content")[0].split())
+        
 
         if type_and_url[0] == 'regex':
             if re.search('<meta name="DC.Title" content="[\w\d\s]* Act \d{4} \(NI\)\s*"\s?\/>', response):
                 type_ = 'primary_legislation' # Create a new `type_` variable rather than overwriting `type_and_url[0]` to ensure that entires added to `indices/downloaded.jsonl` match with their originals in `indices/federal_register_of_legislation/documents.jsonl`.
             else:
                 type_ = 'secondary_legislation'
+            
+            jurisdiction = 'norfolk_island'
+            
         else:
             type_ = type_and_url[0]
             citation += ' (Cth)'
+            jurisdiction = 'commonwealth'
 
         document = {
             'text' : text,
             'type' : type_,
+            'jurisdiction' : jurisdiction,
             'source' : 'federal_register_of_legislation',
             'citation' : citation,
             'url' : type_and_url[1],

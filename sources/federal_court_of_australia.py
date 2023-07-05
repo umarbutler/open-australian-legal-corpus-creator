@@ -49,6 +49,7 @@ def get_document(url, lock=nullcontext()):
             document = {
                 'text' : inscriptis.Inscriptis(etree.xpath('//div[@class="judgment_content"]')[0], _INSCRIPTIS_CONFIG).get_text(),
                 'type' : 'decision',
+                'jurisdiction' : 'commonwealth',
                 'source' : 'federal_court_of_australia',
                 'citation' : ' '.join(etree.xpath('//meta[@name="MNC"]/@content')[0].split()),
                 'url' : url
