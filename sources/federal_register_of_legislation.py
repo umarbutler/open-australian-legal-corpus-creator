@@ -107,6 +107,8 @@ def get_document(type_and_url, lock=nullcontext()):
             with lock: orjsonl.append('indices/downloaded.jsonl', [['federal_register_of_legislation', type_and_url]])
             return
 
+        citation = ' '.join(etree.xpath("//meta[@name='DC.Title']/@content")[0].split())
+
         if type_and_url[0] == 'regex':
             if re.search('<meta name="DC.Title" content="[\w\d\s]* Act \d{4} \(NI\)\s*"\s?\/>', response):
                 type_ = 'primary_legislation' # Create a new `type_` variable rather than overwriting `type_and_url[0]` to ensure that entires added to `indices/downloaded.jsonl` match with their originals in `indices/federal_register_of_legislation/documents.jsonl`.
@@ -114,12 +116,13 @@ def get_document(type_and_url, lock=nullcontext()):
                 type_ = 'secondary_legislation'
         else:
             type_ = type_and_url[0]
+            citation += ' (Cth)'
 
         document = {
             'text' : text,
             'type' : type_,
             'source' : 'federal_register_of_legislation',
-            'citation' : ' '.join(f"""{etree.xpath("//meta[@name='DC.Title']/@content")[0]} (Cth)""".split()),
+            'citation' : citation,
             'url' : type_and_url[1],
         }
 
