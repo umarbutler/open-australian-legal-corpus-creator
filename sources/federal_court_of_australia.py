@@ -7,6 +7,7 @@ import inscriptis
 import lxml
 import orjsonl
 from contextlib import suppress, nullcontext
+from requests import get
 
 _DECISIONS_PER_PAGE = 20
 _INSCRIPTIS_CONFIG = inscriptis.model.config.ParserConfig(inscriptis.css_profiles.CSS_PROFILES['strict'])
@@ -44,14 +45,14 @@ def get_document(url, lock=nullcontext()):
     try:
         # Ignore incorrectly encoded decisions (see, eg, https://www.judgments.fedcourt.gov.au/judgments/Judgments/fca/full/2010/2010fcafc0106) and PDF files that were not excluded from the document index due to the fact they do not end in '.pdf' (ie, https://www.judgments.fedcourt.gov.au/judgments/Judgments/tribunals/adfdat/1992/1992ADFDAT01).
         with suppress(UnicodeDecodeError):
-            etree = lxml.html.document_fromstring(_session.request('GET', url).data.decode('windows-1250'))
+            etree = lxml.html.document_fromstring(get(url).text)
 
             document = {
                 'text' : inscriptis.Inscriptis(etree.xpath('//div[@class="judgment_content"]')[0], _INSCRIPTIS_CONFIG).get_text(),
                 'type' : 'decision',
                 'jurisdiction' : 'commonwealth',
                 'source' : 'federal_court_of_australia',
-                'citation' : ' '.join(etree.xpath('//meta[@name="MNC"]/@content')[0].split()),
+                'citation' : ' '.join(etree.xpath('//meta[@name="MNC"]/@content')[0].split()) or ' '.join(etree.xpath('//p[@class="MediaNeutralStyle"]')[0].text.split()),
                 'url' : url
             }
 
