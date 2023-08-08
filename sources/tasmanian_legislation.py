@@ -1,5 +1,3 @@
-import urllib3
-import certifi
 import os
 import inscriptis
 import lxml
@@ -11,10 +9,9 @@ import orjson
 import itertools
 import re
 from contextlib import nullcontext
+from requests import get
 
 _INSCRIPTIS_CONFIG = inscriptis.model.config.ParserConfig(inscriptis.css_profiles.CSS_PROFILES['strict'])
-
-_session = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
 
 def get_searches():
     searches = orjsonl.load('indices/tasmanian_legislation/searches.jsonl') if os.path.exists('indices/tasmanian_legislation/searches.jsonl') else []
@@ -22,7 +19,7 @@ def get_searches():
     return [['tasmanian_legislation', search_base] for type_, year in itertools.product({'act.reprint', 'reprint'}, range(1839, datetime.datetime.now(tz=pytz.timezone("Australia/Tasmania")).year+1)) if (search_base:=f'https://www.legislation.tas.gov.au/projectdata?ds=EnAct-BrowseDataSource&start=1&count=5000&sortField=sort.title&sortDirection=asc&expression=PrintType={type_}+AND+Year={year}') not in searches]
 
 def get_search(search_base, lock=nullcontext()):
-    if 'data' in (results:=orjson.loads(_session.request('GET', search_base + f'?+AND+PitValid=@pointInTime({datetime.datetime.now(tz=pytz.timezone("Australia/Tasmania")).strftime(r"%Y%m%d%H%M%S")})&collection=').data.decode('utf-8'))):
+    if 'data' in (results:=orjson.loads(get(search_base + f'?+AND+PitValid=@pointInTime({datetime.datetime.now(tz=pytz.timezone("Australia/Tasmania")).strftime(r"%Y%m%d%H%M%S")})&collection=').text)):
         documents = results['data'] if isinstance(results['data'], list) else [results['data']]
 
         documents = [document['id']['__value__'] for document in documents if document['repealed']['__value__'] == 'N']
@@ -35,7 +32,7 @@ def get_search(search_base, lock=nullcontext()):
 
 def get_document(url, lock=nullcontext()):
     try:
-        if '<span id="view-whole">' in (data:=_session.request('GET', url).data.decode('utf-8').replace('&#150;', '&#8211;')):
+        if '<span id="view-whole">' in (data:=get(url).text.replace('&#150;', '&#8211;')):
             etree = lxml.html.document_fromstring(data)
 
             citation = re.sub(r' No \d+$', '', etree.xpath('//h1[@class="title"]')[0].text)

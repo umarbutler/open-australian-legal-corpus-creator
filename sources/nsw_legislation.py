@@ -1,5 +1,3 @@
-import urllib3
-import certifi
 import os
 import inscriptis
 import lxml
@@ -8,6 +6,7 @@ import pytz
 import datetime
 import re
 from contextlib import nullcontext, suppress
+from requests import get
 
 _SEARCH_BASES = (
     'https://legislation.nsw.gov.au/tables/pubactsif',
@@ -18,15 +17,13 @@ _SEARCH_BASES = (
 
 _INSCRIPTIS_CONFIG = inscriptis.model.config.ParserConfig(inscriptis.css_profiles.CSS_PROFILES['strict'])
 
-_session = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
-
 def get_searches():
     searches = orjsonl.load('indices/nsw_legislation/searches.jsonl') if os.path.exists('indices/nsw_legislation/searches.jsonl') else []
 
     return [['nsw_legislation', search_base] for search_base in _SEARCH_BASES if search_base not in searches]
 
 def get_search(search_base, lock=nullcontext()):
-    documents = [['nsw_legislation', f'https://www.legislation.nsw.gov.au/view/whole{document_path}'] for document_path in re.findall(r'<a(?: class="indent")? href="\/view(\/html\/[^"]+)">', _session.request('GET', f'{search_base}?pit={datetime.datetime.now(tz=pytz.timezone("Australia/NSW")).strftime(r"%d/%m/%Y")}&sort=chron&renderas=html&generate=').data.decode('utf-8'))] 
+    documents = [['nsw_legislation', f'https://www.legislation.nsw.gov.au/view/whole{document_path}'] for document_path in re.findall(r'<a(?: class="indent")? href="\/view(\/html\/[^"]+)">', get(f'{search_base}?pit={datetime.datetime.now(tz=pytz.timezone("Australia/NSW")).strftime(r"%d/%m/%Y")}&sort=chron&renderas=html&generate=').text)] 
 
     with lock:
         orjsonl.append('indices/nsw_legislation/documents.jsonl', documents)
@@ -36,7 +33,7 @@ def get_document(url, lock=nullcontext()):
     try:
     # Ignore unicode decode errors raised by attempts to parse PDF files as HTML (unfortunately, it is not possible to exclude PDFs from the index as NSW Legislation does not use file extensions: see, eg, https://legislation.nsw.gov.au/view/whole/html/inforce/current/epi-2018-0764). Also ignore index errors raised by attempts to scrape documents that, for whatever reason, do not exist (see, eg, https://legislation.nsw.gov.au/view/whole/html/inforce/current/sl-2020-0456).
         with suppress(UnicodeDecodeError, IndexError):
-            etree = lxml.html.document_fromstring(_session.request('GET', url).data.decode('utf-8'))
+            etree = lxml.html.document_fromstring(get(url).text)
 
             frag_toolbar = etree.xpath('//div[@id="fragToolbar"]')[0]
             frag_toolbar.getparent().remove(frag_toolbar)

@@ -1,5 +1,3 @@
-import urllib3
-import certifi
 import math
 import os
 import re
@@ -8,21 +6,20 @@ import lxml
 import orjsonl
 from contextlib import suppress, nullcontext
 from requests import get
+from requests.exceptions import RetryError
 
 _DECISIONS_PER_PAGE = 20
 _INSCRIPTIS_CONFIG = inscriptis.model.config.ParserConfig(inscriptis.css_profiles.CSS_PROFILES['strict'])
 _BASE_URL = 'https://search2.fedcourt.gov.au/s/search.html?collection=judgments&sort=adate&meta_v_phrase_orsand=judgments/Judgments&'
 
-_session = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
-
 def get_searches():
     searches = orjsonl.load('indices/federal_court_of_australia/searches.jsonl') if os.path.exists('indices/federal_court_of_australia/searches.jsonl') else []
 
     # NOTE There is a bug that causes the total number of decisions reported by the first 11,000 or so Search Engine Results Pages (SERPs) to be lower than what it really is (cf https://search2.fedcourt.gov.au/s/search.html?collection=judgments&sort=adate&meta_v_phrase_orsand=judgments/Judgments&num_ranks=20&start_rank=1001 and https://search2.fedcourt.gov.au/s/search.html?collection=judgments&sort=adate&meta_v_phrase_orsand=judgments/Judgments&num_ranks=20&start_rank=66001). To determine the actual total number of decisions, we must extract it from what is supposed to be the final SERP.
-    first_serp = _session.request('GET', f'{_BASE_URL}num_ranks=1').data.decode('utf-8')
+    first_serp = get(f'{_BASE_URL}num_ranks=1').text
     supposed_total_decisions = int(first_serp.split('1 of ')[1].split(' ')[0].replace(',', ''))
-
-    supposed_final_serp = _session.request('GET', f'{_BASE_URL}num_ranks=1&start_rank={supposed_total_decisions}').data.decode('utf-8')
+    
+    supposed_final_serp = get(f'{_BASE_URL}num_ranks=1&start_rank={supposed_total_decisions}').text
     total_decisions = int(supposed_final_serp.split(f'{"{:,}".format(supposed_total_decisions)} of ')[1].split(' ')[0].replace(',', ''))
 
     return [['federal_court_of_australia', serp_url] for i in range(0, math.ceil(total_decisions/_DECISIONS_PER_PAGE)) if (serp_url:=f'{_BASE_URL}num_ranks={_DECISIONS_PER_PAGE}&start_rank={i*_DECISIONS_PER_PAGE+1}') not in searches]
@@ -31,8 +28,8 @@ def get_searches():
 def get_search(serp_url, lock=nullcontext()):
     # NOTE For whatever reason, some SERPs simply do not work. In those cases, we will return an empty list.
     try:
-        documents = [['federal_court_of_australia', document_url] for document_url in re.findall(r'<a href="(https:\/\/www\.judgments\.fedcourt\.gov\.au\/judgments\/Judgments\/[^"\.]*)"', _session.request('GET', serp_url).data.decode('utf-8'))] # NOTE This regex excludes PDF decisions.
-    except urllib3.exceptions.MaxRetryError:
+        documents = [['federal_court_of_australia', document_url] for document_url in re.findall(r'<a href="(https:\/\/www\.judgments\.fedcourt\.gov\.au\/judgments\/Judgments\/[^"\.]*)"', get(serp_url).text)] # NOTE This regex excludes PDF decisions.
+    except RetryError:
         documents = []
 
     with lock:
