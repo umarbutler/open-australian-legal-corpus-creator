@@ -29,7 +29,7 @@ def get_search(search_base, lock=nullcontext()):
         orjsonl.append('indices/nsw_legislation/documents.jsonl', documents)
         orjsonl.append('indices/nsw_legislation/searches.jsonl', [search_base])
 
-def get_document(url, lock=nullcontext()):
+def get_document(url, lock=nullcontext(), recursive=False):
     try:
     # Ignore unicode decode errors raised by attempts to parse PDF files as HTML (unfortunately, it is not possible to exclude PDFs from the index as NSW Legislation does not use file extensions: see, eg, https://legislation.nsw.gov.au/view/whole/html/inforce/current/epi-2018-0764). Also ignore index errors raised by attempts to scrape documents that, for whatever reason, do not exist (see, eg, https://legislation.nsw.gov.au/view/whole/html/inforce/current/sl-2020-0456).
         with suppress(UnicodeDecodeError, IndexError):
@@ -60,5 +60,10 @@ def get_document(url, lock=nullcontext()):
             with lock: orjsonl.append('corpus.jsonl', [document])
 
         with lock: orjsonl.append('indices/downloaded.jsonl', [['nsw_legislation', url]])
+
     except Exception as e:
+        if not recursive:
+            get_document(url.replace('/view/whole/html', '/view/whole/pdf'), lock, recursive=True)
+            return
+        
         raise Exception(f'Error getting document from {url}.') from e
