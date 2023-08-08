@@ -1,3 +1,5 @@
+import urllib3
+import certifi
 import math
 import os
 import re
@@ -11,6 +13,8 @@ from requests.exceptions import ChunkedEncodingError
 _DECISIONS_PER_PAGE = 20
 _INSCRIPTIS_CONFIG = inscriptis.model.config.ParserConfig(inscriptis.css_profiles.CSS_PROFILES['strict'])
 _BASE_URL = 'https://search2.fedcourt.gov.au/s/search.html?collection=judgments&sort=adate&meta_v_phrase_orsand=judgments/Judgments&'
+
+_session = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
 
 def get_searches():
     searches = orjsonl.load('indices/federal_court_of_australia/searches.jsonl') if os.path.exists('indices/federal_court_of_australia/searches.jsonl') else []
@@ -28,8 +32,9 @@ def get_searches():
 def get_search(serp_url, lock=nullcontext()):
     # NOTE For whatever reason, some SERPs simply do not work. In those cases, we will return an empty list.
     try:
-        documents = [['federal_court_of_australia', document_url] for document_url in re.findall(r'<a href="(https:\/\/www\.judgments\.fedcourt\.gov\.au\/judgments\/Judgments\/[^"\.]*)"', get(serp_url).text)] # NOTE This regex excludes PDF decisions.
-    except ChunkedEncodingError:
+        documents = [['federal_court_of_australia', document_url] for document_url in re.findall(r'<a href="(https:\/\/www\.judgments\.fedcourt\.gov\.au\/judgments\/Judgments\/[^"\.]*)"', _session.request('GET', serp_url).data.decode('utf-8'))] # NOTE This regex excludes PDF decisions. NOTE `urllib3` is used here instead of `requests` due to the fact that `requests` was raising too many chunked encoding errors.
+        
+    except urllib3.exceptions.MaxRetryError:
         documents = []
 
     with lock:
