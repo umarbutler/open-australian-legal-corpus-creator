@@ -33,7 +33,7 @@ def get_document(url, lock=nullcontext()):
     try:
     # Ignore unicode decode errors raised by attempts to parse PDF files as HTML (unfortunately, it is not possible to exclude PDFs from the index as NSW Legislation does not use file extensions: see, eg, https://legislation.nsw.gov.au/view/whole/html/inforce/current/epi-2018-0764). Also ignore index errors raised by attempts to scrape documents that, for whatever reason, do not exist (see, eg, https://legislation.nsw.gov.au/view/whole/html/inforce/current/sl-2020-0456).
         with suppress(UnicodeDecodeError, IndexError):
-            etree = lxml.html.document_fromstring(get(url).text)
+            etree = lxml.html.document_fromstring(get(url).content.decode('utf-8'))
 
             frag_toolbar = etree.xpath('//div[@id="fragToolbar"]')[0]
             frag_toolbar.getparent().remove(frag_toolbar)
