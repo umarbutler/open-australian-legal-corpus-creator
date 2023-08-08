@@ -12,8 +12,8 @@ from tqdm.contrib.concurrent import thread_map
 from threading import Lock
 
 SOURCES = {
-    'federal_court_of_australia' : federal_court_of_australia,
     'federal_register_of_legislation' : federal_register_of_legislation,
+    'federal_court_of_australia' : federal_court_of_australia,
     'nsw_legislation' : nsw_legislation,
     'queensland_legislation' : queensland_legislation,
     'south_australian_legislation' : south_australian_legislation,
