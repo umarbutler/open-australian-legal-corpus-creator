@@ -6,7 +6,7 @@ import lxml
 import orjsonl
 from contextlib import suppress, nullcontext
 from requests import get
-from requests.exceptions import RetryError
+from requests.exceptions import ChunkedEncodingError
 
 _DECISIONS_PER_PAGE = 20
 _INSCRIPTIS_CONFIG = inscriptis.model.config.ParserConfig(inscriptis.css_profiles.CSS_PROFILES['strict'])
@@ -29,7 +29,7 @@ def get_search(serp_url, lock=nullcontext()):
     # NOTE For whatever reason, some SERPs simply do not work. In those cases, we will return an empty list.
     try:
         documents = [['federal_court_of_australia', document_url] for document_url in re.findall(r'<a href="(https:\/\/www\.judgments\.fedcourt\.gov\.au\/judgments\/Judgments\/[^"\.]*)"', get(serp_url).text)] # NOTE This regex excludes PDF decisions.
-    except RetryError:
+    except ChunkedEncodingError:
         documents = []
 
     with lock:
