@@ -35,7 +35,7 @@ searches = [search for searches_ in thread_map(lambda module: module.get_searche
 random.shuffle(searches)
 
 print('\nSearching pages and folders from each source for documents to be included in the Corpus.')
-if searches: thread_map(lambda search: SOURCES[search[0]].get_search(search[1], LOCK), searches)
+if searches: thread_map(lambda search: SOURCES[search[0]].get_search(search[1], LOCK), searches, max_workers=min(os.cpu_count(), 12))
 documents_already_included = orjsonl.load('indices/downloaded.jsonl') if os.path.exists('indices/downloaded.jsonl') else []
 documents = [document for documents_ in [orjsonl.load(f'indices/{source}/documents.jsonl') for source in SOURCES] for document in documents_ if document not in documents_already_included]
 
@@ -49,4 +49,4 @@ documents = unique_documents
 random.shuffle(documents)
 
 print('\nAdding indexed documents to the Corpus.')
-thread_map(lambda document: SOURCES[document[0]].get_document(document[1], LOCK), documents)
+thread_map(lambda document: SOURCES[document[0]].get_document(document[1], LOCK), documents, max_workers=min(os.cpu_count(), 12))
