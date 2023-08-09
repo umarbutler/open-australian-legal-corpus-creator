@@ -26,7 +26,7 @@ If you rely on this codebase or the Corpus, please cite:
     year = {2023},
     title = {Open Australian Legal Corpus},
     publisher = {Hugging Face},
-    version = {2.0.0},
+    version = {3.0.0},
     doi = {10.57967/hf/0812},
     url = {https://huggingface.co/datasets/umarbutler/open-australian-legal-corpus}
 }
