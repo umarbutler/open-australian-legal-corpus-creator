@@ -46,7 +46,7 @@ def get_document(url, lock=nullcontext()):
     try:
         # Ignore incorrectly encoded decisions (see, eg, https://www.judgments.fedcourt.gov.au/judgments/Judgments/fca/full/2010/2010fcafc0106) and PDF files that were not excluded from the document index due to the fact they do not end in '.pdf' (ie, https://www.judgments.fedcourt.gov.au/judgments/Judgments/tribunals/adfdat/1992/1992ADFDAT01).
         with suppress(UnicodeDecodeError):
-            etree = lxml.html.document_fromstring(get(url).content.decode('utf-8'))
+            etree = lxml.html.document_fromstring(get(url).content.decode('windows-1250'))
 
             document = {
                 'text' : inscriptis.Inscriptis(etree.xpath('//div[@class="judgment_content"]')[0], _INSCRIPTIS_CONFIG).get_text(),
