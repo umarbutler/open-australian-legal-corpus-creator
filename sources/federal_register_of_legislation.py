@@ -24,14 +24,15 @@ _SEARCHES = {
 _INSCRIPTIS_CONFIG = inscriptis.model.config.ParserConfig(inscriptis.css_profiles.CSS_PROFILES['strict'])
 
 urllib3.util.ssl_.DEFAULT_CIPHERS = 'ALL:@SECLEVEL=1'
-_session = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
 
 def get_searches():
+    session = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
+    
     searches_completed = [search[0] for search in (orjsonl.load('indices/federal_register_of_legislation/searches.jsonl') if os.path.exists('indices/federal_register_of_legislation/searches.jsonl') else [])]
     searches = []
 
     for search in _SEARCHES.keys():
-        soup = BeautifulSoup(_session.request('GET', search).data.decode('utf-8'), features='lxml')
+        soup = BeautifulSoup(session.request('GET', search).data.decode('utf-8'), features='lxml')
 
         data = {
             '__EVENTTARGET': 'ctl00$MainContent$gridBrowse',
@@ -55,7 +56,7 @@ def get_searches():
             'ctl00_MainContent_gridBrowse_ClientState': '',
         }
 
-        soup = BeautifulSoup(_session.request('POST', search, fields=data).data.decode('utf-8'), features='lxml')
+        soup = BeautifulSoup(session.request('POST', search, fields=data).data.decode('utf-8'), features='lxml')
 
         data['__EVENTARGUMENT'] = ''
         data['__VIEWSTATE'] = soup.find(id='__VIEWSTATE')['value']
@@ -75,7 +76,7 @@ def get_searches():
             searches.append(['federal_register_of_legislation', [f'{search}#{page}', dict(data)]])
 
             if page % 10 == 1 and page not in {1, pages}:
-                soup = BeautifulSoup(_session.request('POST', search, fields=data).data.decode('utf-8'), features='lxml')
+                soup = BeautifulSoup(session.request('POST', search, fields=data).data.decode('utf-8'), features='lxml')
                 data['__VIEWSTATE'] = soup.find(id='__VIEWSTATE')['value']
                 data['__EVENTVALIDATION'] = soup.find(id='__EVENTVALIDATION')['value']
 
@@ -88,15 +89,19 @@ def get_searches():
     return [search for search in searches if search[1][0] not in searches_completed]
 
 def get_search(search, lock=nullcontext()):
-    documents = [['federal_register_of_legislation', [_SEARCHES[search[0].split('#')[0]], f'https://www.legislation.gov.au/Details/{id_}']] for id_ in re.findall('<span id="ctl00_MainContent_gridBrowse_ctl00_ctl\d+_lblComlawId">(.+)<\/span>', _session.request('POST', search[0], fields=search[1]).data.decode('utf-8'))]
+    session = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
+    
+    documents = [['federal_register_of_legislation', [_SEARCHES[search[0].split('#')[0]], f'https://www.legislation.gov.au/Details/{id_}']] for id_ in re.findall('<span id="ctl00_MainContent_gridBrowse_ctl00_ctl\d+_lblComlawId">(.+)<\/span>', session.request('POST', search[0], fields=search[1]).data.decode('utf-8'))]
 
     with lock:
         orjsonl.append('indices/federal_register_of_legislation/documents.jsonl', documents)
         orjsonl.append('indices/federal_register_of_legislation/searches.jsonl', [search])
 
 def get_document(type_and_url, lock=nullcontext()):
+    session = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
+    
     try:
-        response = _session.request('GET', type_and_url[1]).data.decode('utf-8')
+        response = session.request('GET', type_and_url[1]).data.decode('utf-8')
 
         # Ignore index errors raised by attempting to parse pages that do not contain text but instead link to PDFs.
         try:
