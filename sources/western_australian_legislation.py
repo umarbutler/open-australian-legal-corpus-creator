@@ -24,7 +24,7 @@ def get_search(index_url, lock=nullcontext()):
 
 def get_document(type_and_url, lock=nullcontext()):
     try:
-        etree = lxml.html.document_fromstring(get(type_and_url[1]).text)
+        etree = lxml.html.document_fromstring(get(type_and_url[1]).content.decode('utf-8'))
         
         citation = etree.xpath('//span[@class="NameofActReg-H"]')[0].text_content().replace('\xa0', ' ')
         citation = ' '.join(f'{citation} (WA)'.split())
