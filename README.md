@@ -3,7 +3,7 @@
 This repository is intended to preserve the code used to create the [Open Australian Legal Corpus](https://huggingface.co/datasets/umarbutler/open-australian-legal-corpus), the first and only multijurisdictional open corpus of Australian legislative and judicial documents. To download the Corpus, please visit the [HuggingFace Datasets repository](https://huggingface.co/datasets/umarbutler/open-australian-legal-corpus). Otherwise, if you are looking to replicate the Corpus, read on.
 
 ## Usage
-To collect the Corpus, run the following commands:
+Before collecting the Corpus, ensure that you have obtained all the necessary approvals from the sources in the Corpus to scrape their databases. Once you have such approvals, you may collect the Corpus by running the following commands:
 ```bash
 git clone https://github.com/umarbutler/open-australian-legal-corpus-creator.git
 cd open-australian-legal-corpus-creator
