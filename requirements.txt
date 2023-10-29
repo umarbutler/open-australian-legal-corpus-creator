@@ -1,9 +1,0 @@
-urllib3
-certifi
-orjsonl
-inscriptis
-lxml
-beautifulsoup4
-striprtf
-pytz
-requests

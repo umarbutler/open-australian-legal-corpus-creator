@@ -1,0 +1,73 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "oalc-creator"
+version = "0.1.0"
+authors = [
+  {name="Umar Butler", email="umar@umar.au"},
+]
+description = "The creator of the Open Australian Legal Corpus"
+readme = "README.md"
+requires-python = ">=3.12"
+license = {text="MIT"}
+keywords = [
+    "law",
+    "australia",
+    "australian",
+    "legal",
+    "corpus",
+    "oalc",
+    "open",
+    "open data",
+    "open source",
+    "open legal data",
+    "web scraping",
+    "database",
+    "data scraping",
+    "legislation",
+    "laws",
+    "regulations",
+    "bills",
+    "acts",
+    "cases",
+    "statutes",
+    "judgements",
+    "judgments",
+    "decisions",
+]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: Implementation :: CPython",
+]
+dependencies = [
+    "aiohttp>=3.9.0b0",
+    "alive_progress",
+    "attrs",
+    "click",
+    "frozndict",
+    "inscriptis",
+    "lxml",
+    "mammoth",
+    "orjson",
+    "orjsonl",
+    "pdfplumber",
+    "platformdirs",
+    "pytz",
+    "regex",
+    "rich",
+    "striprtf",
+    "uvloop; platform_system != 'Windows'"
+]
+
+[project.urls]
+Homepage = "https://github.com/umarbutler/open-australian-legal-corpus-creator"
+Documentation = "https://github.com/umarbutler/open-australian-legal-corpus-creator/blob/main/README.md"
+Issues = "https://github.com/umarbutler/open-australian-legal-corpus-creator/issues"
+Source = "https://github.com/umarbutler/open-australian-legal-corpus-creator"
+
+[project.scripts]
+mkoalc = "oalc_creator.cli:create"
