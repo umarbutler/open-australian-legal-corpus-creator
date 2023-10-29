@@ -3,6 +3,7 @@ import math
 import re
 from datetime import timedelta
 
+import aiohttp
 import aiohttp.client_exceptions
 import lxml.html
 import mammoth
