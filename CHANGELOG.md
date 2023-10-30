@@ -3,7 +3,7 @@ All notable changes to the Open Australian Legal Corpus Creator will be document
 
 ## [0.1.2] - 2023-10-30
 ### Fixed
-- Fixed a bug where the citations of documents that already included their abbreviated jurisdiction in their title would have a stray open parenthesis left at the end of their citation.
+- Fixed a bug where everything after the first occurance of a document's abbreviated jurisdiction was stripped from its title by switching to searching for abbreviated jurisdiction enclosed in parentheses.
 
 ## [0.1.1] - 2023-10-30
 ### Fixed
