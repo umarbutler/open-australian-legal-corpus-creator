@@ -1,5 +1,5 @@
 DATA_VERSIONS: dict[str, int] = {
-    'corpus' : 1,
+    'corpus' : 2,
     'index' : 1,
     'indices' : 1,
 }

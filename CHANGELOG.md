@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to the Open Australian Legal Corpus Creator will be documented here. This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2] - 2023-10-30
+### Fixed
+- Fixed a bug where the citations of documents that already included their abbreviated jurisdiction in their title would have a stray open parenthesis left at the end of their citation.
+
 ## [0.1.1] - 2023-10-30
 ### Fixed
 - Fixed import error in the scraper for the Federal Court of Australia.

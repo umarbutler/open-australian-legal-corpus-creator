@@ -125,16 +125,10 @@ class Document:
         # Unescape HTML character entities.
         title = html.unescape(title)
         
-        # Remove extra whitespace characters.
-        title = re.sub(r'\s+', ' ', title)
-        
-        # Remove leading and trailing whitespace characters.
-        title = ' '.join(title.split())
-        
         # Format the citations of legislation.
         if type != 'decision':
             # If the title ends with 'No <number>', remove it.
-            title = re.sub(r' No \d+$', '', title)
+            title = re.sub(r' No\s+\d+$', '', title)
             
             # Determine which abbreviated jurisdiction to append to the title.
             if jurisdiction not in JURISDICTIONS:
@@ -143,9 +137,15 @@ class Document:
             abbreviated_jurisdiction = JURISDICTIONS[jurisdiction]
             
             # If the abbreviated jurisdiction is already inside the title, remove it and any text following it.
-            title = title.split(abbreviated_jurisdiction)[0]
+            title = title.split(f'({abbreviated_jurisdiction})')[0]
             
             # Append the abbreviated jurisdiction to the title.
             title = f'{title} ({abbreviated_jurisdiction})'
+
+        # Remove extra whitespace characters.
+        title = re.sub(r'\s+', ' ', title)
+        
+        # Remove leading and trailing whitespace characters.
+        title = ' '.join(title.split())
         
         return title
