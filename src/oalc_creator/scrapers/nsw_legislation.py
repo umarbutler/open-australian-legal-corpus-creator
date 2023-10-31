@@ -18,7 +18,7 @@ from ..helpers import log, warning
 from ..scraper import Scraper
 
 
-class NSWLegislation(Scraper):
+class NswLegislation(Scraper):
     """A scraper for the NSW Legislation database."""
     
     def __init__(self,

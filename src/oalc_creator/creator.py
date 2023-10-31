@@ -20,7 +20,7 @@ from .helpers import (alive_as_completed, alive_gather, console, load_json,
 from .metadata import DATA_VERSIONS
 from .scraper import Scraper
 from .scrapers import (FederalCourtOfAustralia, FederalRegisterOfLegislation,
-                       NSWLegislation, QueenslandLegislation,
+                       NswLegislation, QueenslandLegislation,
                        SouthAustralianLegislation, TasmanianLegislation,
                        WesternAustralianLegislation)
 
@@ -28,7 +28,7 @@ from .scrapers import (FederalCourtOfAustralia, FederalRegisterOfLegislation,
 SOURCES = {
     'federal_court_of_australia' : FederalCourtOfAustralia,
     'federal_register_of_legislation' : FederalRegisterOfLegislation,
-    'nsw_legislation' : NSWLegislation,
+    'nsw_legislation' : NswLegislation,
     'queensland_legislation' : QueenslandLegislation,
     'south_australian_legislation' : SouthAustralianLegislation,
     'western_australian_legislation' : WesternAustralianLegislation,
