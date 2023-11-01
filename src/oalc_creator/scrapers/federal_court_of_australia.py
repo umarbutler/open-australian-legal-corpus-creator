@@ -13,10 +13,10 @@ from inscriptis.css_profiles import CSS_PROFILES
 from inscriptis.html_properties import Display
 from inscriptis.model.html_element import HtmlElement
 
+from ..custom_inscriptis import CustomInscriptis, CustomParserConfig
 from ..data import Document, Entry, Request
 from ..helpers import log, warning
 from ..scraper import Scraper
-from ..custom_inscriptis import CustomParserConfig, CustomInscriptis
 
 
 class FederalCourtOfAustralia(Scraper):

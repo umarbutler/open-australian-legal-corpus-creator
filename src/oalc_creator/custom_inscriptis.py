@@ -1,11 +1,12 @@
 from contextlib import suppress
 
+from inscriptis import Inscriptis
 from inscriptis.html_properties import Display
 from inscriptis.model.attribute import Attribute
+from inscriptis.model.config import ParserConfig
 from inscriptis.model.css import CssParse
 from inscriptis.model.html_element import HtmlElement
-from inscriptis.model.config import ParserConfig
-from inscriptis import Inscriptis
+
 
 class CustomInscriptis(Inscriptis):
     """A custom Inscriptis parser for the Open Australian Legal Corpus."""

@@ -11,10 +11,10 @@ from inscriptis.html_properties import Display, WhiteSpace
 from inscriptis.model.html_element import HtmlElement
 from striprtf.striprtf import rtf_to_text
 
+from ..custom_inscriptis import CustomInscriptis, CustomParserConfig
 from ..data import Document, Entry, Request
 from ..helpers import log, warning
 from ..scraper import Scraper
-from ..custom_inscriptis import CustomParserConfig, CustomInscriptis
 
 
 class FederalRegisterOfLegislation(Scraper):
