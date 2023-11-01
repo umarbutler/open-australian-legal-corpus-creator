@@ -7,15 +7,14 @@ from datetime import timedelta
 import aiohttp
 import lxml.html
 import mammoth
-from inscriptis import Inscriptis
 from inscriptis.css_profiles import CSS_PROFILES
 from inscriptis.html_properties import Display
-from inscriptis.model.config import ParserConfig
 from inscriptis.model.html_element import HtmlElement
 
 from ..data import Document, Entry, Request
 from ..helpers import log
 from ..scraper import Scraper
+from ..custom_inscriptis import CustomParserConfig, CustomInscriptis
 
 
 class WesternAustralianLegislation(Scraper):
@@ -47,7 +46,7 @@ class WesternAustralianLegislation(Scraper):
         inscriptis_profile |= dict.fromkeys(('h1', 'h2', 'h3', 'h4', 'h5'), HtmlElement(display=Display.block, margin_before=1))
         
         # Create an Inscriptis parser config using the custom CSS profile.
-        self._inscriptis_config = ParserConfig(inscriptis_profile)
+        self._inscriptis_config = CustomParserConfig(inscriptis_profile)
         
     @log
     async def get_index_reqs(self) -> set[Request]:
@@ -107,7 +106,7 @@ class WesternAustralianLegislation(Scraper):
         # Extract text from the generated HTML.
         etree = lxml.html.fromstring(html.value)
 
-        text = Inscriptis(etree, self._inscriptis_config).get_text()
+        text = CustomInscriptis(etree, self._inscriptis_config).get_text()
 
         # Return the document.
         return Document(

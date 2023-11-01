@@ -4,7 +4,17 @@ from inscriptis.html_properties import Display
 from inscriptis.model.attribute import Attribute
 from inscriptis.model.css import CssParse
 from inscriptis.model.html_element import HtmlElement
+from inscriptis.model.config import ParserConfig
+from inscriptis import Inscriptis
 
+class CustomInscriptis(Inscriptis):
+    """A custom Inscriptis parser for the Open Australian Legal Corpus."""
+
+    # Override Inscriptis' default `ol` start tag handler so that lists start at the number provided in the `start` attribute of `ol` tags if such an attribute exists.
+    def _start_ol(self, ol: dict) -> None:
+        # Use the starting number provided in the `start` attribute if it exists, otherwise use 1.
+        start = int(ol.get('start', 1))
+        self.li_counter.append(start)
 
 class CustomCssParse(CssParse):
     """A custom Inscriptis CSS parser for the Open Australian Legal Corpus."""
@@ -78,3 +88,16 @@ class CustomAttribute(Attribute):
             'valign': CustomCssParse.attr_vertical_align,
             'class' : CustomCssParse.attr_class,
         }
+
+class CustomParserConfig(ParserConfig):
+    def __init__(self, css: dict[str, HtmlElement] = None,
+                 display_images: bool = False,
+                 deduplicate_captions: bool = False,
+                 display_links: bool = False,
+                 display_anchors: bool = False,
+                 annotation_rules: Attribute = None,
+                 table_cell_separator: str = '  '):
+        super().__init__(css, display_images, deduplicate_captions, display_links, display_anchors, annotation_rules, table_cell_separator)
+        
+        # Override Inscriptis' default attribute handler and, by extension, CSS parser.
+        self.attribute_handler = CustomAttribute()

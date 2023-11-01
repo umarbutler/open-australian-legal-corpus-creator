@@ -6,16 +6,14 @@ from datetime import datetime, timedelta
 import aiohttp
 import lxml.html
 import pytz
-from inscriptis import Inscriptis
 from inscriptis.css_profiles import CSS_PROFILES
 from inscriptis.html_properties import Display
-from inscriptis.model.config import ParserConfig
 from inscriptis.model.html_element import HtmlElement
 
-from ..css import CustomAttribute
 from ..data import Document, Entry, Request
 from ..helpers import log
 from ..scraper import Scraper
+from ..custom_inscriptis import CustomParserConfig, CustomInscriptis
 
 
 class TasmanianLegislation(Scraper):
@@ -44,10 +42,7 @@ class TasmanianLegislation(Scraper):
         inscriptis_profile['blockquote'] = HtmlElement(display=Display.block, padding_inline=4)
         
         # Create an Inscriptis parser config using the custom CSS profile.
-        self._inscriptis_config = ParserConfig(inscriptis_profile)
-
-        # Override Inscriptis' default attribute handler and, by extension, CSS parser.
-        self._inscriptis_config.attribute_handler = CustomAttribute()
+        self._inscriptis_config = CustomParserConfig(inscriptis_profile)
 
     @log
     async def get_index_reqs(self) -> set[Request]:
@@ -122,7 +117,7 @@ class TasmanianLegislation(Scraper):
         for elm in text_elm.xpath("//*[contains(concat(' ', normalize-space(@class), ' '), ' view-history-note ')]"): elm.drop_tree()
         
         # Extract the text of the document.
-        text = Inscriptis(text_elm, self._inscriptis_config).get_text()
+        text = CustomInscriptis(text_elm, self._inscriptis_config).get_text()
         
         # Return the document.
         return Document(

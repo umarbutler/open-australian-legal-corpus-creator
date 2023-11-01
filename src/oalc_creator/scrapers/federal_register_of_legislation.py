@@ -6,17 +6,15 @@ import aiohttp
 import lxml.html
 import mammoth
 import pdfplumber
-from inscriptis import Inscriptis
 from inscriptis.css_profiles import CSS_PROFILES
 from inscriptis.html_properties import Display, WhiteSpace
-from inscriptis.model.config import ParserConfig
 from inscriptis.model.html_element import HtmlElement
 from striprtf.striprtf import rtf_to_text
 
-from ..css import CustomAttribute
 from ..data import Document, Entry, Request
 from ..helpers import log, warning
 from ..scraper import Scraper
+from ..custom_inscriptis import CustomParserConfig, CustomInscriptis
 
 
 class FederalRegisterOfLegislation(Scraper):
@@ -52,10 +50,7 @@ class FederalRegisterOfLegislation(Scraper):
         inscriptis_profile |= dict.fromkeys(('h1', 'h2', 'h3', 'h4', 'h5'), HtmlElement(display=Display.block, margin_before=1))
         
         # Create an Inscriptis parser config using the custom CSS profile.
-        self._inscriptis_config = ParserConfig(inscriptis_profile)
-
-        # Override Inscriptis' default attribute handler and, by extension, CSS parser.
-        self._inscriptis_config.attribute_handler = CustomAttribute()
+        self._inscriptis_config = CustomParserConfig(inscriptis_profile)
         
         # Create a map of base search engine results pages ('SERPs') to document types.
         self._base_serps = {
@@ -256,7 +251,7 @@ class FederalRegisterOfLegislation(Scraper):
 
                     # Extract text from the generated HTML.
                     etree = lxml.html.fromstring(html.value)
-                    text = Inscriptis(etree, self._inscriptis_config).get_text()
+                    text = CustomInscriptis(etree, self._inscriptis_config).get_text()
                 
                 case 'PDF':
                     # Extract the text of the document from the PDF.
@@ -270,7 +265,7 @@ class FederalRegisterOfLegislation(Scraper):
             url = entry.request.path
             
             # Extract the text of the document.
-            text = Inscriptis(text_element[0], self._inscriptis_config).get_text()
+            text = CustomInscriptis(text_element[0], self._inscriptis_config).get_text()
         
         # Return the document.
         return Document(

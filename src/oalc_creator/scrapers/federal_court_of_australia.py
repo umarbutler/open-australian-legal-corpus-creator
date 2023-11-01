@@ -9,16 +9,14 @@ import lxml.html
 import mammoth
 import pdfplumber
 import regex
-from inscriptis import Inscriptis
 from inscriptis.css_profiles import CSS_PROFILES
 from inscriptis.html_properties import Display
-from inscriptis.model.config import ParserConfig
 from inscriptis.model.html_element import HtmlElement
 
-from ..css import CustomAttribute
 from ..data import Document, Entry, Request
 from ..helpers import log, warning
 from ..scraper import Scraper
+from ..custom_inscriptis import CustomParserConfig, CustomInscriptis
 
 
 class FederalCourtOfAustralia(Scraper):
@@ -56,10 +54,7 @@ class FederalCourtOfAustralia(Scraper):
         inscriptis_profile |= dict.fromkeys(('h1', 'h2', 'h3', 'h4', 'h5'), HtmlElement(display=Display.block, margin_before=1))
         
         # Create an Inscriptis parser config using the custom CSS profile.
-        self._inscriptis_config = ParserConfig(inscriptis_profile)
-
-        # Override Inscriptis' default attribute handler and, by extension, CSS parser.
-        self._inscriptis_config.attribute_handler = CustomAttribute()
+        self._inscriptis_config = CustomParserConfig(inscriptis_profile)
 
         # Initialise a map of class names to the number of ems they should be indented by.
         # NOTE This map was created by inspecting the CSS of the Federal Court of Australia database.
@@ -175,7 +170,7 @@ class FederalCourtOfAustralia(Scraper):
 
                     # Extract text from the generated HTML.
                     etree = lxml.html.fromstring(html.value)
-                    text = Inscriptis(etree, self._inscriptis_config).get_text()
+                    text = CustomInscriptis(etree, self._inscriptis_config).get_text()
                 
                 # If we were able to decode the response, extract text from it.
                 else:      
@@ -195,16 +190,16 @@ class FederalCourtOfAustralia(Scraper):
                         classes = set(elm.get('class', '').split(' '))
                         
                         # Determine whether any of the element's classes are in `self.class_indentations`.
-                        # NOTE It is technically possible for more than one class to match, in such a case, whatever class is returned by `matching_class.pop()` is the one that will be used.
-                        if matching_class := classes.intersection(self._class_indentations):
+                        # NOTE It is possible for more than one class to match, in such a case, whatever class is returned by `matching_classes.pop()` is the one that will be used.
+                        if matching_classes := classes.intersection(self._class_indentations):
                             # Retrieve the element's `style` attribute if it exists, otherwise use an empty string.
                             style = elm.get('style', '')
                             
                             # Add the indentation to the element's `style` attribute.
-                            elm.set('style', f'margin-left: {self._class_indentations[matching_class.pop()]}em; {style}')
+                            elm.set('style', f'margin-left: {self._class_indentations[matching_classes.pop()]}em; {style}')
                     
                     # Use Inscriptis to extract the text of the document.
-                    text = Inscriptis(text_elm, self._inscriptis_config).get_text()
+                    text = CustomInscriptis(text_elm, self._inscriptis_config).get_text()
 
                     # Remove trailing whitespace (this also helps remove newlines comprised entirely of whitespace).
                     text = regex.sub(r' +\n', '\n', text)
