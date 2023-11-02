@@ -140,8 +140,7 @@ class QueenslandLegislation(Scraper):
             
             # Extract the text of the document.
             with pdfplumber.open(resp) as pdf:
-                # NOTE Although `pdfplumber` appears incapable of distinguishing between visual line breaks (ie, from paragraphs wrapping around a page) and semantic/real line breaks, a workaround is to instruct `pdfplumber` to retain blank chars, thereby preserving trailing whitespaces before newlines, and then replace those trailing whitespaces with a single space thereby removing visual line breaks.
-                text = '\n'.join(page.extract_text() for page in pdf.pages)
+                text = '\n'.join(page.extract_text_simple() for page in pdf.pages)
             
         else:
             # Store the document's url.
