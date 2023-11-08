@@ -63,13 +63,13 @@ class Scraper(ABC):
         self.retry_statuses: tuple[int] = retry_statuses
         """A tuple of statuses to retry on."""
         
-        self._stop_after_waiting: int = 15 * 60
+        self.stop_after_waiting: int = 15 * 60
         """The maximum number of seconds that can be waited between retries before raising an exception."""
         
-        self._max_wait: int = 2.5 * 60
+        self.max_wait: int = 2.5 * 60
         """The maximum number of seconds to wait between retries."""
         
-        self._wait_base: int = 1.25
+        self.wait_base: int = 1.25
         """The exponential backoff base."""
     
     @abstractmethod
@@ -137,13 +137,13 @@ class Scraper(ABC):
                         )
             
             except self.retry_exceptions as e:
-                if elapsed > self._stop_after_waiting:
+                if elapsed > self.stop_after_waiting:
                     raise e
                 
                 attempt += 1
                 
                 # Implement exponential backoff with jitter.
-                wait = self._wait_base ** attempt / 2 # We divide by 2 so that `wait + jitter` is always <= `self.wait_base ** attempt`.
+                wait = self.wait_base ** attempt / 2 # We divide by 2 so that `wait + jitter` is always <= `self.wait_base ** attempt`.
                 
                 # Set our jitter to a random number between 0 and `wait`.
                 jitter = random.uniform(0, wait)
@@ -151,7 +151,7 @@ class Scraper(ABC):
                 wait = wait + jitter
                 
                 # If `wait` is greater than `self.max_wait`, set `wait` to `self.max_wait`.
-                wait = min(wait, self._max_wait)
+                wait = min(wait, self.max_wait)
                 
                 # Wait for `wait` seconds.
                 await asyncio.sleep(wait)
