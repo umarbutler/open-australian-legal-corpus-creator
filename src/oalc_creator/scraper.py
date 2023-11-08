@@ -63,7 +63,7 @@ class Scraper(ABC):
         self.retry_statuses: tuple[int] = retry_statuses
         """A tuple of statuses to retry on."""
         
-        self._stop_after_waiting: int = 10 * 60
+        self._stop_after_waiting: int = 15 * 60
         """The maximum number of seconds that can be waited between retries before raising an exception."""
         
         self._max_wait: int = 2.5 * 60
