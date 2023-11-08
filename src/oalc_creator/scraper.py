@@ -66,7 +66,7 @@ class Scraper(ABC):
         self._stop_after_waiting: int = 10 * 60
         """The maximum number of seconds that can be waited between retries before raising an exception."""
         
-        self._max_wait: int = 1 * 60
+        self._max_wait: int = 2.5 * 60
         """The maximum number of seconds to wait between retries."""
         
         self._wait_base: int = 1.25
