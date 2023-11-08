@@ -29,7 +29,7 @@ class Scraper(ABC):
                         aiohttp.client_exceptions.ClientPayloadError,
                         aiohttp.client_exceptions.ClientResponseError,
                  ),
-                 retry_statuses: tuple[int] = (429),
+                 retry_statuses: tuple[int] = (429,),
                  ) -> None:
         """Initialise a scraper.
         
