@@ -52,8 +52,11 @@ class QueenslandLegislation(Scraper):
 
     @log
     async def get_index_reqs(self) -> set[Request]:
+        # Get the current date in Queensland.
+        pit = datetime.now(tz=pytz.timezone("Australia/Queensland")).strftime(r"%d/%m/%Y")
+        
         return {
-            Request(f'https://www.legislation.qld.gov.au/tables/{suffix}{datetime.now(tz=pytz.timezone("Australia/Queensland")).strftime(r"%d/%m/%Y")}&sort=chron&renderas=html&generate=')
+            Request(f'https://www.legislation.qld.gov.au/tables/{suffix}{pit}&sort=chron&renderas=html&generate=')
             
             for suffix in ('pubactsif?pit=', 'siif?pit=', 'bills?dstart=03/11/1992&dend=')
         }

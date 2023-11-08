@@ -46,8 +46,11 @@ class NswLegislation(Scraper):
 
     @log
     async def get_index_reqs(self) -> set[Request]:
+        # Get the current date in NSW.
+        pit = datetime.now(tz=pytz.timezone("Australia/NSW")).strftime(r"%d/%m/%Y")
+        
         return {
-            Request(f'https://legislation.nsw.gov.au/tables/{table}if?pit={datetime.now(tz=pytz.timezone("Australia/NSW")).strftime(r"%d/%m/%Y")}&sort=chron&renderas=html&generate=')
+            Request(f'https://legislation.nsw.gov.au/tables/{table}if?pit={pit}&sort=chron&renderas=html&generate=')
             for table in ('pubacts', 'pvtacts', 'si', 'epi')
         }
 

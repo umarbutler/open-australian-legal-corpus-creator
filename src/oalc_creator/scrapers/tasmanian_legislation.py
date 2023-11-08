@@ -46,9 +46,12 @@ class TasmanianLegislation(Scraper):
 
     @log
     async def get_index_reqs(self) -> set[Request]:
+        # Get the current date in Tasmania.
+        pit = datetime.now(tz=pytz.timezone("Australia/Tasmania")).strftime(r"%Y%m%d%H%M%S")
+        
         # NOTE Here we generate a set of search queries intended to result in the retrieval of all documents in the database that are in force at this current point in time. The queries are to an internal API. Queries are generated for all possible combinations of valid types ('act.reprint' for primary legislation and 'reprint' for secondary legislation) and years. The range of years used is from 1839 (when the earliest document in the database is dated) to the current year. The queries are sorted by title, in ascending order (ie, from A to Z). The first 5,000 results are retrieved (technically, this means that it is possible that some documents will be missed, however, this is almost certainly impossible as the number of laws in force in Tasmania at any given point in time is no where near that number).
         return {
-            Request(f'https://www.legislation.tas.gov.au/projectdata?ds=EnAct-BrowseDataSource&start=1&count=5000&sortField=sort.title&sortDirection=asc&expression=PrintType={type}+AND+Year={year}?+AND+PitValid=@pointInTime({datetime.now(tz=pytz.timezone("Australia/Tasmania")).strftime(r"%Y%m%d%H%M%S")})&collection=')
+            Request(f'https://www.legislation.tas.gov.au/projectdata?ds=EnAct-BrowseDataSource&start=1&count=5000&sortField=sort.title&sortDirection=asc&expression=PrintType={type}+AND+Year={year}?+AND+PitValid=@pointInTime({pit})&collection=')
             
             for type, year in itertools.product({'act.reprint', 'reprint'}, range(1839, datetime.now(tz=pytz.timezone("Australia/Tasmania")).year+1))
         }
