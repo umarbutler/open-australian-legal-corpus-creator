@@ -68,7 +68,7 @@ class NswCaselaw(Scraper):
         pages = ceil(total_decisions / 200)
         
         # Generate requests for every page of the queries.
-        # NOTE Pages start at 0, which why we don't add 1 to the range.
+        # NOTE Pages start at 0, which is why we don't add 1 to the range.
         return {Request(f'https://www.caselaw.nsw.gov.au/browse/list?page={page}') for page in range(0, pages)}
 
     @log
