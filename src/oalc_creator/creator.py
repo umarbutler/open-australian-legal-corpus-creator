@@ -241,11 +241,12 @@ class Creator:
             # Deduplicate the Corpus and remove any documents that have the same source as the sources being scraped and do not appear in the sources' indices; and also store the version ids of documents not removed from the Corpus in order to later identify missing documents to be added to the Corpus.
             corpus_version_ids = []
             
-            with open(f'{self.corpus_path}.tmp', 'wb') as tmp_file:
-                for doc in orjsonl.stream(self.corpus_path):
+            with open(self.corpus_path, 'rb') as corpus_file, open(f'{self.corpus_path}.tmp', 'wb') as tmp_file:
+                for line in corpus_file:
+                    doc = orjson.loads(line)
+                    
                     if doc['version_id'] not in corpus_version_ids and (doc['version_id'] in entries or doc['source'] not in self.scrapers):
-                        tmp_file.write(orjson.dumps(doc))
-                        tmp_file.write(b'\n')
+                        tmp_file.write(line)
                         
                         corpus_version_ids.append(doc['version_id'])
             
