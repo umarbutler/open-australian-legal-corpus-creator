@@ -20,7 +20,7 @@ pip install .
 To create or update the Corpus, simply call `mkoalc` from the command line. By default, this will output the Corpus to a file named `corpus.jsonl` in the current working directory. Checkpoints and other Corpus data will be stored in your user data directory.
 
 The Creator's default behaviour may be modified by passing the following optional arguments to `mkoalc`:
-* `-s`/`--sources`: The names of the sources to be scraped, delimited by commas. Possible sources are `federal_court_of_australia`, `federal_register_of_legislation`, `nsw_legislation`, `nsw_caselaw`, `queensland_legislation`, `south_australian_legislation`, `western_australian_legislation` and `tasmanian_legislation`. Defaults to all supported sources.
+* `-s`/`--sources`: The names of the sources to be scraped, delimited by commas. Possible sources are `federal_court_of_australia`, `federal_register_of_legislation`, `high_court_of_australia`, `nsw_legislation`, `nsw_caselaw`, `queensland_legislation`, `south_australian_legislation`, `western_australian_legislation` and `tasmanian_legislation`. Defaults to all supported sources.
 * `-o`/`--output`: The path to the Corpus. Defaults to a file named `corpus.jsonl` in the current working directory.
 * `-d`/`--data_dir`: The path to the directory in which Corpus data should be stored. Defaults to the user's data directory as determined by [`platformdirs.user_data_dir`](https://github.com/platformdirs/platformdirs#the-problem) (on Windows, this will be `C:/Users/<username>/AppData/Local/Umar Butler/Open Australian Legal Corpus`).
 

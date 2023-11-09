@@ -1,5 +1,6 @@
 from .federal_court_of_australia import FederalCourtOfAustralia
 from .federal_register_of_legislation import FederalRegisterOfLegislation
+from .high_court_of_australia import HighCourtOfAustralia
 from .nsw_caselaw import NswCaselaw
 from .nsw_legislation import NswLegislation
 from .queensland_legislation import QueenslandLegislation

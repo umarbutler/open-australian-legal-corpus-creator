@@ -10,6 +10,7 @@ from typing import Iterable
 import aiohttp
 import orjson
 import orjsonl
+from aiofile import async_open
 from attrs import asdict
 from platformdirs import user_data_dir
 from rich.markdown import Markdown
@@ -20,14 +21,15 @@ from .helpers import (alive_as_completed, alive_gather, console, load_json,
 from .metadata import DATA_VERSIONS
 from .scraper import Scraper
 from .scrapers import (FederalCourtOfAustralia, FederalRegisterOfLegislation,
-                       NswCaselaw, NswLegislation, QueenslandLegislation,
-                       SouthAustralianLegislation, TasmanianLegislation,
-                       WesternAustralianLegislation)
+                       HighCourtOfAustralia, NswCaselaw, NswLegislation,
+                       QueenslandLegislation, SouthAustralianLegislation,
+                       TasmanianLegislation, WesternAustralianLegislation)
 
 # Initialise a map of the names of sources to their scrapers.
 SOURCES = {
     'federal_court_of_australia' : FederalCourtOfAustralia,
     'federal_register_of_legislation' : FederalRegisterOfLegislation,
+    'high_court_of_australia' : HighCourtOfAustralia,
     'nsw_caselaw' : NswCaselaw,
     'nsw_legislation' : NswLegislation,
     'queensland_legislation' : QueenslandLegislation,
@@ -47,7 +49,7 @@ class Creator:
         """Initialise the creator of the Open Australian Legal Corpus.
         
         Args:
-            sources (Iterable[str | Scraper], optional): The names of the sources to be scraped or the scrapers themselves. Possible sources are `federal_court_of_australia`, `federal_register_of_legislation`, `nsw_caselaw`, `nsw_legislation`, `queensland_legislation`, `south_australian_legislation`, `western_australian_legislation` and `tasmanian_legislation`. Defaults to all supported sources.
+            sources (Iterable[str | Scraper], optional): The names of the sources to be scraped or the scrapers themselves. Possible sources are `federal_court_of_australia`, `federal_register_of_legislation`, `high_court_of_australia`, `nsw_caselaw`, `nsw_legislation`, `queensland_legislation`, `south_australian_legislation`, `western_australian_legislation` and `tasmanian_legislation`. Defaults to all supported sources.
             corpus_path (str, optional): The path to the Corpus. Defaults to a file named `corpus.jsonl` in the current working directory.
             data_dir (str, optional): The path to the directory in which Corpus data should be stored. Defaults to the user's data directory as determined by `platformdirs.user_data_dir` (on Windows, this will be `C:/Users/<username>/AppData/Local/Umar Butler/Open Australian Legal Corpus`)."""
 
