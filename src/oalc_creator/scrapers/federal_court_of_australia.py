@@ -107,7 +107,6 @@ class FederalCourtOfAustralia(Scraper):
     async def get_index(self, req: Request) -> set[Entry]:
         # NOTE There is a bug in the Federal Court of Australia's database that causes certain SERPs to return the exact same results, thereby leading to the inclusion of duplicates in the document index.
         # NOTE There is another bug in the Federal Court of Australia's database that causes any SERPs containing references to a specific set of documents to not work. To mitigate against this, we return an empty set wherever `aiohttp.client_exceptions.ClientPayloadError` is encountered.
-        
         try:
             resp = (await self.get(req)).text
         
