@@ -10,7 +10,6 @@ from typing import Iterable
 import aiohttp
 import orjson
 import orjsonl
-from aiofile import async_open
 from attrs import asdict
 from platformdirs import user_data_dir
 from rich.markdown import Markdown
