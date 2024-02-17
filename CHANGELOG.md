@@ -2,11 +2,11 @@
 All notable changes to the Open Australian Legal Corpus Creator will be documented here. This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [1.0.1] - 2024-02-17
-## Fixed
+### Fixed
 - Refactored the scraper for the Federal Register of Legislation database in order to resolve breaking API changes brought about by the database's redesign, thereby fixing [#1](https://github.com/umarbutler/open-australian-legal-corpus-creator/issues/1).
 
 ## [1.0.0] - 2023-11-09
-## Added
+### Added
 - Created a scraper for the High Court of Australia database.
 - Added status code `429` as a default retryable status code.
 
