@@ -1,6 +1,10 @@
 ## Changelog 🔄
 All notable changes to the Open Australian Legal Corpus Creator will be documented here. This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2024-02-17
+## Fixed
+- Refactored the scraper for the Federal Register of Legislation database in order to resolve breaking API changes brought about by the database's redesign, thereby fixing #1.
+
 ## [1.0.0] - 2023-11-09
 ## Added
 - Created a scraper for the High Court of Australia database.
@@ -24,7 +28,7 @@ All notable changes to the Open Australian Legal Corpus Creator will be document
 
 ## [0.1.1] - 2023-10-30
 ### Fixed
-- Fixed import error in the scraper for the Federal Court of Australia.
+- Fixed import error in the scraper for the Federal Court of Australia database.
 
 ## [0.1.0] - 2023-10-29
 ### Added
@@ -55,6 +59,7 @@ All notable changes to the Open Australian Legal Corpus Creator will be document
 - Reduced excessive line breaks in texts.
 - Improved the extraction and cleaning of citations.
 
+[1.0.1]: https://github.com/umarbutler/open-australian-legal-corpus-creator/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/umarbutler/open-australian-legal-corpus-creator/compare/v0.1.2...v1.0.0
 [0.1.2]: https://github.com/umarbutler/open-australian-legal-corpus-creator/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/umarbutler/open-australian-legal-corpus-creator/compare/v0.1.0...v0.1.1
