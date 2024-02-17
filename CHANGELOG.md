@@ -3,7 +3,7 @@ All notable changes to the Open Australian Legal Corpus Creator will be document
 
 ## [1.0.1] - 2024-02-17
 ## Fixed
-- Refactored the scraper for the Federal Register of Legislation database in order to resolve breaking API changes brought about by the database's redesign, thereby fixing #1.
+- Refactored the scraper for the Federal Register of Legislation database in order to resolve breaking API changes brought about by the database's redesign, thereby fixing [#1](https://github.com/umarbutler/open-australian-legal-corpus-creator/issues/1).
 
 ## [1.0.0] - 2023-11-09
 ## Added
