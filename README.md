@@ -11,9 +11,7 @@ Before running the Creator, it is **essential** that you are authorised to scrap
 ## Installation
 To install the Creator, run the following commands:
 ```bash
-git clone https://github.com/umarbutler/open-australian-legal-corpus-creator.git
-cd open-australian-legal-corpus-creator
-pip install .
+pip install git+https://github.com/umarbutler/open-australian-legal-corpus-creator
 ```
 
 ## Usage
