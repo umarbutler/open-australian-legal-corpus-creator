@@ -91,7 +91,7 @@ class Creator:
             
             # Delete any data that is incompatible with the current version of the Creator.
             for name, version in versions.items():
-                # If the data is in `data_paths`, is incompatible with the current version of the Creator and exists, delete it.
+                # If the data in `data_paths` is incompatible with the current version of the Creator, delete it.
                 if name in data_paths and version != DATA_VERSIONS[name] and os.path.exists(data_paths[name]):
                     if os.path.isdir(data_paths[name]):
                         shutil.rmtree(data_paths[name])
