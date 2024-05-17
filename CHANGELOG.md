@@ -5,6 +5,7 @@ All notable changes to the Open Australian Legal Corpus Creator will be document
 ## Added
 - Introduced the `when_scraped` field of documents.
 - Started retrying requests when parsing errors are encountered to cope with servers being overloaded but returning successful status codes.
+- Added support for Python 3.10 and 3.11.
 
 ## Changed
 - Switched from `attrs` and `orjson` to `msgspec` in order to speed up and simplify the serialisation and deserialisation of Corpus data.

@@ -40,27 +40,29 @@ keywords = [
 classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: Implementation :: CPython",
 ]
 dependencies = [
     "aiohttp>=3.9.0b0",
     "alive_progress",
-    "attrs",
     "click",
     "frozndict",
     "inscriptis",
     "lxml",
     "mammoth",
+    "msgspec",
     "orjson",
-    "orjsonl",
     "pdfplumber",
     "platformdirs",
     "pytz",
     "regex",
     "rich",
     "striprtf",
-    "uvloop; platform_system != 'Windows'"
+    "uvloop; platform_system != 'Windows'",
 ]
 
 [project.urls]
