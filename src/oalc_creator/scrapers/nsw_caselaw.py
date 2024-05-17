@@ -85,7 +85,7 @@ class NswCaselaw(Scraper):
                 version_id=entry['id'],
                 source=self.source,
                 jurisdiction=self._jurisdiction,
-                title=f'{(entry["title"] if "title" in entry else '')} {entry["mnc"]}',
+                title=f'{(entry["title"] if "title" in entry else "")} {entry["mnc"]}',
             )
             
             for entry in resp['searchableDecisions']
