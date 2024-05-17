@@ -1,14 +1,15 @@
-import asyncio
 import random
+import asyncio
+
 from abc import ABC, abstractmethod
-from contextlib import nullcontext
-from datetime import timedelta
 from typing import override
+from datetime import timedelta
+from contextlib import nullcontext
 
 import aiohttp
 import aiohttp.client_exceptions
 
-from .data import Document, Entry, Request, Response
+from .data import Entry, Request, Document, Response
 from .helpers import log
 
 
@@ -37,7 +38,7 @@ class Scraper(ABC):
             source (str): The name of the source.
             indices_refresh_interval (timedelta | bool, optional): The interval at which to refresh document indices or `True` if document indices must be refreshed. Defaults to 1 day.
             index_refresh_interval (timedelta | bool, optional): The interval at which to refresh the document index or `True` if the document index must be refreshed. Defaults to 1 day.
-            semaphore (asyncio.Semaphore, optional): A semaphore for limiting the number of concurrent requests. Defaults to a semaphore with a limit of 10.
+            semaphore (asyncio.Semaphore, optional): A semaphore for limiting the number of concurrent requests. Defaults to a semaphore with a limit of 30.
             session (aiohttp.ClientSession, optional): An `aiohttp` session to use for making requests. Defaults to `None`, thereby creating a new session for every request.
             retry_exceptions (tuple[type[BaseException]], optional): A tuple of exceptions to retry on. Defaults to a tuple of `asyncio.TimeoutError`, `aiohttp.ClientConnectorError`, `aiohttp.client_exceptions.ServerDisconnectedError`, `aiohttp.client_exceptions.ClientOSError`, `aiohttp.client_exceptions.ClientPayloadError`, and `aiohttp.client_exceptions.ClientResponseError`.
             retry_statuses (tuple[int], optional): A tuple of statuses to retry on. Defaults to an empty tuple."""
