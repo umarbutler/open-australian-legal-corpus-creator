@@ -2,13 +2,11 @@ import random
 import asyncio
 
 from abc import ABC, abstractmethod
-from typing import override
 from datetime import timedelta
 from contextlib import nullcontext
 
 import aiohttp
 import aiohttp.client_exceptions
-from torch import Value
 
 from .data import Entry, Request, Document, Response
 from .helpers import log
@@ -84,7 +82,6 @@ class Scraper(ABC):
         """Retrieve a set of entries from a document index."""
         pass
     
-    @override
     def _get_entry(self, *args, **kwargs) -> Entry | None:
         """Retrieve an entry from an element of a document index."""
         pass
