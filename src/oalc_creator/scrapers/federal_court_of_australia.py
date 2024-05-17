@@ -6,7 +6,6 @@ from datetime import timedelta
 
 import regex
 import aiohttp
-import mammoth
 import lxml.html
 import pdfplumber
 import aiohttp.client_exceptions
@@ -18,6 +17,7 @@ from inscriptis.model.html_element import HtmlElement
 from ..data import Entry, Request, Document, make_doc
 from ..helpers import log, warning
 from ..scraper import Scraper
+from ..custom_mammoth import docx_to_html
 from ..custom_inscriptis import CustomInscriptis, CustomParserConfig
 
 
@@ -167,7 +167,7 @@ class FederalCourtOfAustralia(Scraper):
 
                     # Convert the document to HTML.
                     # NOTE Converting DOCX files to HTML with `mammoth` outperforms using `pypandoc`, `python-docx`, `docx2txt` and `docx2python` to convert DOCX files directly to text.
-                    html = mammoth.convert_to_html(resp.stream, convert_image=lambda _: {})
+                    html = docx_to_html(resp.stream)
 
                     # Extract text from the generated HTML.
                     etree = lxml.html.fromstring(html.value)

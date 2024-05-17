@@ -5,7 +5,6 @@ from math import ceil
 from datetime import timedelta
 
 import aiohttp
-import mammoth
 import lxml.html
 import pdfplumber
 
@@ -17,6 +16,7 @@ from ..data import Entry, Request, Document, make_doc
 from ..helpers import log, warning
 from ..scraper import Scraper
 from ..custom_inscriptis import CustomInscriptis, CustomParserConfig
+from ..custom_mammoth import docx_to_html
 
 
 class FederalRegisterOfLegislation(Scraper):
@@ -216,7 +216,7 @@ class FederalRegisterOfLegislation(Scraper):
                 case 'word':
                     # Convert the parts to HTML.
                     # NOTE Converting DOCX files to HTML with `mammoth` outperforms using `pypandoc`, `python-docx`, `docx2txt` and `docx2python` to convert DOCX files directly to text.
-                    htmls = [mammoth.convert_to_html(resp.stream, convert_image=lambda _: {}) for resp in part_resps]
+                    htmls = [docx_to_html(resp.stream) for resp in part_resps]
                     
                     # Extract text from the generated HTML.
                     etrees = [lxml.html.fromstring(html.value) for html in htmls]
