@@ -102,8 +102,8 @@ class WesternAustralianLegislation(Scraper):
 
         # Convert the document to HTML. 
         # NOTE This appears to be the most reliable method of extracting text from documents on the Western Australian Legislation database. It outperforms using the database's HTML versions of documents (which are often formatted incorrectly), extracting text from or OCR-ing the database's PDF versions, and using the `pypandoc`, `python-docx`, `docx2txt` and `docx2python` libraries to convert the DOCX versions directly to text.
-        # NOTE We disable image conversion by creating an image converter function that returns an empty dict.
-        html = mammoth.convert_to_html(resp, convert_image=lambda _: {})
+        # NOTE We disable image conversion by using an image converter function that returns an empty dict.
+        html = mammoth.convert_to_html(resp, convert_image = dummy_image_converter)
 
         # Extract text from the generated HTML.
         etree = lxml.html.fromstring(html.value)
@@ -120,3 +120,7 @@ class WesternAustralianLegislation(Scraper):
             url=entry.request.path,
             text=text
         )
+
+def dummy_image_converter(_) -> dict:
+    """A dummy image converter function that returns an empty dict."""
+    return {}
