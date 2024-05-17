@@ -1,10 +1,13 @@
 import asyncio
-from textwrap import dedent
+
 from typing import Any, Callable
+from textwrap import dedent
 
 import orjson
-from alive_progress import alive_bar
+import msgspec
+
 from rich.console import Console
+from alive_progress import alive_bar
 
 console = Console()
 
@@ -60,17 +63,31 @@ def log(func: Callable) -> Callable:
     
     return async_wrapper if asyncio.iscoroutinefunction(func) else sync_wrapper
 
-def save_json(path: str, content: Any) -> None:
+def save_json(path: str, content: Any, encoder: Callable[[Any], bytes] = msgspec.json.encode) -> None:
     """Save content as a json file."""
     
     with open(path, 'wb') as writer:
-        writer.write(orjson.dumps(content))
+        writer.write(encoder(content))
 
-def load_json(path: str) -> Any:
+def load_json(path: str, decoder: Callable[[bytes], Any] = orjson.loads) -> Any:
     """Load a json file."""
     
     with open(path, 'rb') as reader:
-        return orjson.loads(reader.read())
+        return decoder(reader.read())
+
+def load_jsonl(path: str, decoder: Callable[[bytes], Any] = orjson.loads) -> list:
+    """Load a jsonl file."""
+    
+    with open(path, 'rb') as file:
+        return [decoder(json) for json in file]
+
+def save_jsonl(path: str, content: list, encoder: Callable[[Any], bytes] = msgspec.json.encode) -> None:
+    """Save a list of objects as a jsonl file."""
+    
+    with open(path, 'wb') as file:
+        for entry in content:
+            file.write(encoder(entry))
+            file.write(b'\n')
 
 async def alive_gather(*funcs):
     """`asyncio.gather` with a progress bar from `alive_progress`."""

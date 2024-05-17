@@ -123,7 +123,7 @@ class TasmanianLegislation(Scraper):
         text = CustomInscriptis(text_elm, self._inscriptis_config).get_text()
         
         # Return the document.
-        return Document(
+        return make_doc(
             version_id=entry.version_id,
             type=entry.type,
             jurisdiction=entry.jurisdiction,

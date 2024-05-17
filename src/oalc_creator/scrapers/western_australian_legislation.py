@@ -1,20 +1,22 @@
-import asyncio
-import itertools
 import re
 import string
+import asyncio
+import itertools
+
 from datetime import timedelta
 
 import aiohttp
-import lxml.html
 import mammoth
+import lxml.html
+
 from inscriptis.css_profiles import CSS_PROFILES
 from inscriptis.html_properties import Display
 from inscriptis.model.html_element import HtmlElement
 
-from ..custom_inscriptis import CustomInscriptis, CustomParserConfig
-from ..data import Document, Entry, Request
+from ..data import Entry, Request, Document, make_doc
 from ..helpers import log
 from ..scraper import Scraper
+from ..custom_inscriptis import CustomInscriptis, CustomParserConfig
 
 
 class WesternAustralianLegislation(Scraper):
@@ -109,7 +111,7 @@ class WesternAustralianLegislation(Scraper):
         text = CustomInscriptis(etree, self._inscriptis_config).get_text()
 
         # Return the document.
-        return Document(
+        return make_doc(
             version_id=entry.version_id,
             type=entry.type,
             jurisdiction=entry.jurisdiction,

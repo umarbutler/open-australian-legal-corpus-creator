@@ -1,22 +1,24 @@
-import asyncio
 import re
+import asyncio
+
 from datetime import datetime, timedelta
 
-import aiohttp
-import aiohttp.client_exceptions
-import lxml.html
-import mammoth
-import pdfplumber
 import pytz
+import aiohttp
+import mammoth
+import lxml.html
+import pdfplumber
+import aiohttp.client_exceptions
+
+from striprtf.striprtf import rtf_to_text
 from inscriptis.css_profiles import CSS_PROFILES
 from inscriptis.html_properties import Display
 from inscriptis.model.html_element import HtmlElement
-from striprtf.striprtf import rtf_to_text
 
-from ..custom_inscriptis import CustomInscriptis, CustomParserConfig
-from ..data import Document, Entry, Request
+from ..data import Entry, Request, Document, make_doc
 from ..helpers import log
 from ..scraper import Scraper
+from ..custom_inscriptis import CustomInscriptis, CustomParserConfig
 
 
 class HighCourtOfAustralia(Scraper):
@@ -180,7 +182,7 @@ class HighCourtOfAustralia(Scraper):
                 text = re.sub(r'^\n+', '', text)
         
         # Create the document.
-        return Document(
+        return make_doc(
             version_id=entry.version_id,
             type=entry.type,
             jurisdiction=entry.jurisdiction,

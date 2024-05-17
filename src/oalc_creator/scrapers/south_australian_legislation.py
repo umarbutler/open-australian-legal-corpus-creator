@@ -1,13 +1,15 @@
-import asyncio
-import itertools
 import re
 import string
+import asyncio
+import itertools
+
 from datetime import timedelta
 
 import aiohttp
+
 from striprtf.striprtf import rtf_to_text
 
-from ..data import Document, Entry, Request
+from ..data import Entry, Request, Document, make_doc
 from ..helpers import log
 from ..scraper import Scraper
 
@@ -108,7 +110,7 @@ class SouthAustralianLegislation(Scraper):
         text = rtf_to_text(resp.text, encoding='cp1252', errors='ignore')
 
         # Return the document.
-        return Document(
+        return make_doc(
             version_id=entry.version_id,
             type=entry.type,
             jurisdiction=entry.jurisdiction,

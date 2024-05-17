@@ -1,20 +1,22 @@
-import asyncio
 import re
-from datetime import timedelta
+import asyncio
+
 from math import ceil
+from datetime import timedelta
 
 import aiohttp
-import lxml.html
 import mammoth
+import lxml.html
 import pdfplumber
+
 from inscriptis.css_profiles import CSS_PROFILES
 from inscriptis.html_properties import Display, WhiteSpace
 from inscriptis.model.html_element import HtmlElement
 
-from ..custom_inscriptis import CustomInscriptis, CustomParserConfig
-from ..data import Document, Entry, Request
+from ..data import Entry, Request, Document, make_doc
 from ..helpers import log, warning
 from ..scraper import Scraper
+from ..custom_inscriptis import CustomInscriptis, CustomParserConfig
 
 
 class FederalRegisterOfLegislation(Scraper):
@@ -233,7 +235,7 @@ class FederalRegisterOfLegislation(Scraper):
             text = '\n'.join(texts)
             
         # Return the document.
-        return Document(
+        return make_doc(
             version_id=entry.version_id,
             type=type,
             jurisdiction=entry.jurisdiction,

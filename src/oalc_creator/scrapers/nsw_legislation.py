@@ -161,7 +161,7 @@ class NswLegislation(Scraper):
                 raise ValueError(f'Unable to retrieve document from {entry.request.path}. Invalid content type: {resp.type}.')
         
         # Return the document.
-        return Document(
+        return make_doc(
             version_id=entry.version_id,
             type=entry.type,
             jurisdiction=entry.jurisdiction,

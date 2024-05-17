@@ -1,28 +1,25 @@
 import os
-import os.path
-import pathlib
 import random
 import shutil
-from contextlib import ExitStack
-from datetime import datetime
+import os.path
+import pathlib
+
 from typing import Iterable
+from datetime import datetime
+from contextlib import ExitStack
 
 import aiohttp
-import orjson
-import orjsonl
-from attrs import asdict
+
 from platformdirs import user_data_dir
 from rich.markdown import Markdown
 
-from .data import Entry, Request
-from .helpers import (alive_as_completed, alive_gather, console, load_json,
-                      log, save_json)
-from .metadata import DATA_VERSIONS
+from .data import Entry, encoder, Entries, Request, entries_decoder, document_decoder, requests_decoder
+from .helpers import log, console, load_json, save_json, load_jsonl, save_jsonl, alive_gather, alive_as_completed
 from .scraper import Scraper
-from .scrapers import (FederalCourtOfAustralia, FederalRegisterOfLegislation,
-                       HighCourtOfAustralia, NswCaselaw, NswLegislation,
-                       QueenslandLegislation, SouthAustralianLegislation,
-                       TasmanianLegislation, WesternAustralianLegislation)
+from .metadata import DATA_VERSIONS
+from .scrapers import (NswCaselaw, NswLegislation, HighCourtOfAustralia, TasmanianLegislation, QueenslandLegislation,
+                       FederalCourtOfAustralia, SouthAustralianLegislation, FederalRegisterOfLegislation,
+                       WesternAustralianLegislation)
 
 # Initialise a map of the names of sources to their scrapers.
 SOURCES = {
@@ -121,16 +118,11 @@ class Creator:
             scraper.indices_refresh_interval is not False and
             datetime.now() - datetime.fromtimestamp(os.path.getmtime(path)) > scraper.indices_refresh_interval
         ):
-            reqs = await scraper.get_index_reqs()
-
-            save_json(path, [asdict(req) for req in reqs])
+            save_json(path, reqs := await scraper.get_index_reqs())
         
         # Otherwise, load the saved requests.
         else:
-            reqs = load_json(path)
-            
-            # Convert the saved requests to a set of Request objects.
-            reqs = {Request(**req) for req in reqs}
+            reqs = load_json(path, decoder = requests_decoder)
         
         return reqs
     
@@ -151,36 +143,34 @@ class Creator:
             return index_reqs
         
         # Load requests from the index.
-        index = [[Request(**req), entries, when_indexed] for req, entries, when_indexed in orjsonl.load(path)]
+        index: list[Entries] = load_jsonl(path, decoder = entries_decoder)
         
         # Preserve the length of the index before filtering to determine whether to overwrite the index.
         index_len = len(index)
         
         # Filter for requests that appear in the provided set of requests and, if the source's index refresh interval is not False, are also not older than the source's index refresh interval.
-        index = [[req, entries, when_indexed] for req, entries, when_indexed in index
-                    if req in index_reqs and
-                    (
-                        scraper.index_refresh_interval is False or
-                        datetime.now() - datetime.fromtimestamp(when_indexed) <= scraper.index_refresh_interval
-                    )]
+        index = [entries for entries in index if entries.request in index_reqs and (
+            scraper.index_refresh_interval is False or
+            datetime.now() - datetime.fromtimestamp(entries.when_indexed) <= scraper.index_refresh_interval
+        )]
         
         # If the length of the index has changed (ie, there are requests in the saved index that do not appear in the provided set of requests or, if the source's index refresh interval is not False, are older than the source's index refresh interval), overwrite the index.
         if len(index) != index_len:
-            orjsonl.save(path, [(asdict(req), entries, when_indexed) for req, entries, when_indexed in index])
+            save_jsonl(path, index)
         
         # Return any requests that are missing from the index.
-        return index_reqs - {req for req, _, _ in index}
+        return index_reqs - {entries.request for entries in index}
 
     @log
-    async def _get_index(self, scraper: Scraper, req: Request) -> tuple[str, list[dict, list[dict], float]]:
-        """Retrieve entries from a document index and return the name of the source along with a list comprised of the index's request, the entries and the time the index was retrieved."""
+    async def _get_index(self, scraper: Scraper, req: Request) -> tuple[str, Entries]:
+        """Retrieve entries from a document index and return the name of the source along with the entries."""
         
-        return scraper.source, [
-            asdict(req),
-            [asdict(entry) for entry in await scraper.get_index(req)],
-            datetime.now().timestamp()
-        ]
-    
+        return scraper.source, Entries(
+            request = req,
+            entries = await scraper.get_index(req),
+            when_indexed = datetime.now().timestamp(),
+        )
+        
     async def create(self) -> None:
         """Update the Corpus."""
         
@@ -220,23 +210,20 @@ class Creator:
                     for source_index in alive_as_completed([self._get_index(scraper, req) for scraper, req in unindexed_index_reqs]):
                         source, index = await source_index
                         
-                        index_files[source].write(orjson.dumps(index))
+                        index_files[source].write(encoder(index))
                         index_files[source].write(b'\n')
             
             # Load sources' indices and attach their scrapers.
-            indices = [[scraper, orjsonl.load(os.path.join(self.index_dir, f'{scraper.source}.jsonl'))] for scraper in self.scrapers.values()]
+            indices: list[tuple[Scraper, list[Entries]]] = [[scraper, load_jsonl(os.path.join(self.index_dir, f'{scraper.source}.jsonl'), decoder = entries_decoder)] for scraper in self.scrapers.values()]
             
             # Flatten document entries but retain their scrapers.
             # NOTE We use a dictionary comprehension to deduplicate document entries by version id (this is important as there is at least one bug known to cause duplicate entries (the problem is with the Federal Court of Australia's database)).
             entries = {
-                entry['version_id'] : [
-                    scraper,
-                    Entry(**entry | {'request' : Request(**entry['request'])}) # NOTE We must ensure that the request is converted to a Request object before it is passed to the Entry constructor.
-                ]
+                entry.version_id : [scraper, entry]
                 
                 for scraper, index in indices
-                for _, entries, _ in index
-                for entry in entries
+                for entries in index
+                for entry in entries.entries
             }
             
             # Deduplicate the Corpus and remove any documents that have the same source as the sources being scraped and do not appear in the sources' indices; and also store the version ids of documents not removed from the Corpus in order to later identify missing documents to be added to the Corpus.
@@ -244,12 +231,12 @@ class Creator:
             
             with open(self.corpus_path, 'rb') as corpus_file, open(f'{self.corpus_path}.tmp', 'wb') as tmp_file:
                 for line in corpus_file:
-                    doc = orjson.loads(line)
+                    doc = document_decoder(line)
                     
-                    if doc['version_id'] not in corpus_version_ids and (doc['version_id'] in entries or doc['source'] not in self.scrapers):
+                    if doc.version_id not in corpus_version_ids and (doc.version_id in entries or doc.source not in self.scrapers):
                         tmp_file.write(line)
                         
-                        corpus_version_ids.append(doc['version_id'])
+                        corpus_version_ids.append(doc.version_id)
             
             corpus_version_ids = set(corpus_version_ids)
 
@@ -275,7 +262,7 @@ class Creator:
                     doc = await doc
 
                     if doc:
-                        f.write(orjson.dumps(asdict(doc)))
+                        f.write(encoder(doc))
                         f.write(b'\n')
             
             console.print('\nThe Corpus has been updated!', style='dark_cyan bold')

@@ -1,7 +1,7 @@
 DATA_VERSIONS: dict[str, int] = {
-    'corpus' : 2,
-    'index' : 1,
-    'indices' : 1,
+    'corpus' : 3,
+    'index' : 2,
+    'indices' : 2,
 }
 """A map of the names of Corpus data to version numbers. This flags whether Corpus data is compatible with the current version of the Creator.
 
