@@ -1,12 +1,13 @@
-import asyncio
 import os
+import asyncio
 
-import click
 import rich
+import click
+
 from platformdirs import user_data_dir
 from rich.traceback import install
 
-from .creator import SOURCES, Creator
+from .creator import Creator, SOURCES
 
 # Use `uvloop` instead of `asyncio` if it's available.
 try:

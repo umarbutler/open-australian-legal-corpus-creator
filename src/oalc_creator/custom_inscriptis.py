@@ -1,10 +1,10 @@
 from contextlib import suppress
 
 from inscriptis import Inscriptis
+from inscriptis.model.css import CssParse
+from inscriptis.model.config import ParserConfig
 from inscriptis.html_properties import Display
 from inscriptis.model.attribute import Attribute
-from inscriptis.model.config import ParserConfig
-from inscriptis.model.css import CssParse
 from inscriptis.model.html_element import HtmlElement
 
 
