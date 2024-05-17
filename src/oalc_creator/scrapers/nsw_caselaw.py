@@ -4,7 +4,6 @@ import asyncio
 from math import ceil
 from datetime import timedelta
 
-import orjson
 import aiohttp
 import lxml.html
 import pdfplumber
@@ -76,7 +75,7 @@ class NswCaselaw(Scraper):
     @log
     async def get_index(self, req: Request) -> set[Entry]:
         # Retrieve the index.
-        resp = orjson.loads((await self.get(req)).text)
+        resp = (await self.get(req)).json
         
         # Extract entries from the index.
         return {
