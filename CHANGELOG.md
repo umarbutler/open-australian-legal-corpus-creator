@@ -1,6 +1,19 @@
 ## Changelog 🔄
 All notable changes to the Open Australian Legal Corpus Creator will be documented here. This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+## Added
+- Introduced the `when_scraped` field of documents.
+- Started retrying requests when parsing errors are encountered to cope with servers being overloaded but returning successful status codes.
+
+## Changed
+- Switched from `attrs` and `orjson` to `msgspec` in order to speed up and simplify the serialisation and deserialisation of Corpus data.
+- Began storing Corpus data as arrays rather than dictionaries in order to speed up serialisation and deserialisation and also compress the data.
+
+### Fixed
+- Skipped scraping web pages from the NSW Legislation database that contain the substring 'No fragments found.' due to a newly identified bug in the database (see, eg, https://legislation.nsw.gov.au/view/whole/html/inforce/2021-03-25/act-1944-031).
+- Skipped scraping web pages from the Tasmanian Legislation database that contain the substring 'No fragments found.' due to a newly identified bug in the database (see, eg, https://www.legislation.tas.gov.au/view/whole/html/inforce/current/act-2022-033).
+
 ## [1.0.1] - 2024-02-17
 ### Fixed
 - Refactored the scraper for the Federal Register of Legislation database in order to resolve breaking API changes brought about by the database's redesign, thereby fixing [#1](https://github.com/umarbutler/open-australian-legal-corpus-creator/issues/1).
