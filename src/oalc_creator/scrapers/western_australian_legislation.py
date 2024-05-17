@@ -96,7 +96,7 @@ class WesternAustralianLegislation(Scraper):
         )
 
     @log
-    async def get_doc(self, entry: Entry) -> Document:
+    async def _get_doc(self, entry: Entry) -> Document:
         # Retrieve the document.
         resp = (await self.get(entry.request)).stream
 

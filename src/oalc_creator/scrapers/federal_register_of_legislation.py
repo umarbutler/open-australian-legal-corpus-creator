@@ -134,7 +134,7 @@ class FederalRegisterOfLegislation(Scraper):
         }
 
     @log
-    async def get_doc(self, entry: Entry) -> Document | None:
+    async def _get_doc(self, entry: Entry) -> Document | None:
         # If no document type was set, determine the document type from the title.
         if entry.type is None:
             # NOTE This regex only matches primary legislation for Norfolk Island as Norfolk Island is currently the only jurisdiction for which the document type will not already be set.

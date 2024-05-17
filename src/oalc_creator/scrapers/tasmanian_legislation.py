@@ -88,7 +88,7 @@ class TasmanianLegislation(Scraper):
         }
 
     @log
-    async def get_doc(self, entry: Entry) -> Document | None:
+    async def _get_doc(self, entry: Entry) -> Document | None:
         # Retrieve the document.  
         resp = (await self.get(entry.request))
         

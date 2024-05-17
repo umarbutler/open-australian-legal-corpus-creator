@@ -15,7 +15,7 @@ from inscriptis.model.html_element import HtmlElement
 
 from ..data import Entry, Request, Document, make_doc
 from ..helpers import log
-from ..scraper import Scraper
+from ..scraper import Scraper, ParseError
 from ..custom_inscriptis import CustomInscriptis, CustomParserConfig
 
 
@@ -95,7 +95,7 @@ class NswCaselaw(Scraper):
         }
 
     @log
-    async def get_doc(self, entry: Entry) -> Document | None:
+    async def _get_doc(self, entry: Entry) -> Document | None:
         # Retrieve the document.
         resp = (await self.get(entry.request)).text
         
@@ -119,8 +119,14 @@ class NswCaselaw(Scraper):
             # Construct an etree from the response.
             etree = lxml.html.fromstring(resp)
 
-            # Retrieve the element containing the text of the decision.
-            text_elm = etree.xpath('//div[@class="judgment"]')[0]
+            # Retrieve the element containing the text of the decision if it exists, otherwise raise a `ParseError`.
+            text_elm = etree.xpath('//div[@class="judgment"]')
+            
+            if text_elm:
+                text_elm = text_elm[0]
+            
+            else:
+                raise ParseError()
 
             # Convert description lists (used for headnotes) into tables as Inscriptis renders description lists incorrectly.
             text_elm = self.dls_to_tables(text_elm)

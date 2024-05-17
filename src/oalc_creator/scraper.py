@@ -8,6 +8,7 @@ from contextlib import nullcontext
 
 import aiohttp
 import aiohttp.client_exceptions
+from torch import Value
 
 from .data import Entry, Request, Document, Response
 from .helpers import log
@@ -89,9 +90,42 @@ class Scraper(ABC):
         pass
     
     @abstractmethod
-    async def get_doc(self, entry: Entry) -> Document | None:
+    async def _get_doc(self, entry: Entry) -> Document | None:
         """Retrieve a document."""
         pass
+    
+    @log
+    async def get_doc(self, entry: Entry) -> Document | None:
+        """Retrieve a document, retrying if necessary for up to `self.stop_after_waiting` seconds."""
+        
+        attempt = 0
+        elapsed = 0
+        
+        while True:
+            try:
+                return await self._get_doc(entry)
+            
+            except ParseError as e:
+                if elapsed > self.stop_after_waiting:
+                    raise e
+                
+                attempt += 1
+                
+                # Implement exponential backoff with jitter.
+                wait = self.wait_base ** attempt / 2 # We divide by 2 so that `wait + jitter` is always <= `self.wait_base ** attempt`.
+                
+                # Set our jitter to a random number between 0 and `wait`.
+                jitter = random.uniform(0, wait)
+                
+                wait = wait + jitter
+                
+                # If `wait` is greater than `self.max_wait`, set `wait` to `self.max_wait`.
+                wait = min(wait, self.max_wait)
+                
+                # Wait for `wait` seconds.
+                await asyncio.sleep(wait)
+                
+                elapsed += wait
     
     @log
     async def get(self, req: Request | str) -> Response:
@@ -158,3 +192,14 @@ class Scraper(ABC):
                 await asyncio.sleep(wait)
                 
                 elapsed += wait
+
+class ParseError(ValueError):
+    """Downloaded content is unparseable."""
+    
+    def __init__(
+        self,
+        message: str = 'Unable to parse downloaded content. This could mean that the server is overloaded and retrying is in order or it could be that the content is actually unparseable. You are advised to inspect the source yourself.',
+    ) -> None:
+        self.message = message
+        
+        super().__init__(self.message)
