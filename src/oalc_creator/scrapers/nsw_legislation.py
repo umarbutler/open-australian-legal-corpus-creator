@@ -1,19 +1,21 @@
-import asyncio
 import re
+import asyncio
+
 from datetime import datetime, timedelta
 
+import pytz
 import aiohttp
 import lxml.html
 import pdfplumber
-import pytz
+
 from inscriptis.css_profiles import CSS_PROFILES
 from inscriptis.html_properties import Display
 from inscriptis.model.html_element import HtmlElement
 
-from ..custom_inscriptis import CustomInscriptis, CustomParserConfig
-from ..data import Document, Entry, Request
+from ..data import Entry, Request, Document, make_doc
 from ..helpers import log, warning
 from ..scraper import Scraper
+from ..custom_inscriptis import CustomInscriptis, CustomParserConfig
 
 
 class NswLegislation(Scraper):
@@ -125,15 +127,20 @@ class NswLegislation(Scraper):
         # Retrieve the document.
         resp = await self.get(entry.request)
         
-        # If error 404 is encountered, return None.
-        # NOTE It is possible for some documents to simply be missing which is why we return None rather than raising an exception.
+        # If error 404 is encountered, return `None`.
+        # NOTE It is possible for some documents to simply be missing which is why we return `None` rather than raising an exception.
         if resp.status == 404:
-            warning(f'Unable to retrieve document from {entry.request.path}. Error 404 (Not Found) encountered. Returning `None`.')
+            warning(f'Unable to retrieve document from {entry.request.path}. Error 404 (Not Found) encountered, indicating that the document is missing from the NSW Legislation database. Returning `None`.')
             
             return
         
         match resp.type:
             case 'text/html':
+                # If the response contains the substring 'No fragments found.', then return `None` as there is a bug in the NSW Legislation database preventing the retrieval of certain documents (see, eg, https://legislation.nsw.gov.au/view/whole/html/inforce/2021-03-25/act-1944-031).
+                if 'No fragments found.' in resp.text:
+                    warning(f"Unable to retrieve document from {entry.request.path}. 'No fragments found.' encountered in the response, indicating that the document is missing from the NSW Legislation database. Returning `None`.")
+                    return
+                
                 # Create an etree from the response.
                 etree = lxml.html.fromstring(resp.text)
                 

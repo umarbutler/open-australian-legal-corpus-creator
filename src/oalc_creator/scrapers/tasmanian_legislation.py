@@ -1,19 +1,21 @@
+import re
 import asyncio
 import itertools
-import re
+
 from datetime import datetime, timedelta
 
+import pytz
 import aiohttp
 import lxml.html
-import pytz
+
 from inscriptis.css_profiles import CSS_PROFILES
 from inscriptis.html_properties import Display
 from inscriptis.model.html_element import HtmlElement
 
-from ..custom_inscriptis import CustomInscriptis, CustomParserConfig
-from ..data import Document, Entry, Request
-from ..helpers import log
+from ..data import Entry, Request, Document, make_doc
+from ..helpers import log, warning
 from ..scraper import Scraper
+from ..custom_inscriptis import CustomInscriptis, CustomParserConfig
 
 
 class TasmanianLegislation(Scraper):
@@ -103,6 +105,11 @@ class TasmanianLegislation(Scraper):
         
         # Extract text from the response.
         resp = resp.text
+    
+        # If the response contains the substring 'Content Not Found.', then return `None` as there is a bug in the Tasmanian Legislation database preventing the retrieval of certain documents (see, eg, https://www.legislation.tas.gov.au/view/whole/html/inforce/current/act-2022-033).
+        if 'Content Not Found.' in resp.text:
+            warning(f"Unable to retrieve document from {entry.request.path}. 'Content Not Found.' encountered in the response, indicating that the document is missing from the Tasmanian Legislation database. Returning `None`.")
+            return
         
         # Replace the non-standard HTML character entity &#150; with the standard HTML character entity &#8211; (en dash).
         resp = resp.replace('&#150;', '&#8211;')
