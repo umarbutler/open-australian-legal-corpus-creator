@@ -27,12 +27,12 @@ class NswCaselaw(Scraper):
                  index_refresh_interval: bool | timedelta = None,
                  semaphore: asyncio.Semaphore = None,
                  session: aiohttp.ClientSession = None,
-                 ) -> None:
+                 ) -> None:        
         super().__init__(
             source='nsw_caselaw',
             indices_refresh_interval=indices_refresh_interval,
             index_refresh_interval=index_refresh_interval,
-            semaphore=semaphore,
+            semaphore=semaphore or asyncio.Semaphore(10), # Employ a lower semaphore limit to avoid overloading the NSW Caselaw database.
             session=session
         )
 
