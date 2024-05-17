@@ -10,6 +10,7 @@ All notable changes to the Open Australian Legal Corpus Creator will be document
 ## Changed
 - Switched from `attrs` and `orjson` to `msgspec` in order to speed up and simplify the serialisation and deserialisation of Corpus data.
 - Began storing Corpus data as arrays rather than dictionaries in order to speed up serialisation and deserialisation and also compress the data.
+- Made minor micro-optimisations by replacing lambda functions with named functions.
 
 ### Fixed
 - Skipped scraping web pages from the NSW Legislation database that contain the substring 'No fragments found.' due to a newly identified bug in the database (see, eg, https://legislation.nsw.gov.au/view/whole/html/inforce/2021-03-25/act-1944-031).
