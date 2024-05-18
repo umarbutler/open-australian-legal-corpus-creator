@@ -34,7 +34,7 @@ class FederalCourtOfAustralia(Scraper):
             source='federal_court_of_australia',
             indices_refresh_interval=indices_refresh_interval,
             index_refresh_interval=index_refresh_interval,
-            semaphore=semaphore,
+            semaphore=semaphore or asyncio.Semaphore(10), # Employ a lower semaphore limit to avoid overloading the database.
             session=session
         )
         
