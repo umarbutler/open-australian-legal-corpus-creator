@@ -1,7 +1,7 @@
 ## Changelog 🔄
 All notable changes to the Open Australian Legal Corpus Creator will be documented here. This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.0] - 2024-XX-XX
+## [2.0.0] - 2024-05-18
 ## Added
 - Introduced the `when_scraped` field of documents.
 - Started retrying requests when parsing errors are encountered to cope with servers being overloaded but returning successful status codes.
@@ -10,7 +10,7 @@ All notable changes to the Open Australian Legal Corpus Creator will be document
 
 ## Changed
 - Switched from `attrs` and `orjson` to `msgspec` in order to speed up and simplify the serialisation and deserialisation of Corpus data.
-- Began storing Corpus data as arrays rather than dictionaries in order to speed up the serialisation and deserialisation of Corpus data and also to reduce the Corpus' memory footprint.
+- Began storing Corpus data as arrays rather than dictionaries in order to speed up the serialisation and deserialisation of Corpus data and also reduce the Corpus' memory footprint.
 - Reduced the semaphore limit for the NSW Caselaw and Federal Court of Australia database from 30 to 10 to avoid overloading it.
 - Made minor micro-optimisations by replacing lambda functions with named functions.
 
@@ -77,6 +77,7 @@ All notable changes to the Open Australian Legal Corpus Creator will be document
 - Reduced excessive line breaks in texts.
 - Improved the extraction and cleaning of citations.
 
+[2.0.0]: https://github.com/umarbutler/open-australian-legal-corpus-creator/compare/v1.0.1...v2.0.0
 [1.0.1]: https://github.com/umarbutler/open-australian-legal-corpus-creator/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/umarbutler/open-australian-legal-corpus-creator/compare/v0.1.2...v1.0.0
 [0.1.2]: https://github.com/umarbutler/open-australian-legal-corpus-creator/compare/v0.1.1...v0.1.2
