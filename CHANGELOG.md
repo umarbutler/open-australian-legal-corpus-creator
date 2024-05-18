@@ -2,13 +2,13 @@
 All notable changes to the Open Australian Legal Corpus Creator will be documented here. This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [2.0.0] - 2024-05-18
-## Added
+### Added
 - Introduced the `when_scraped` field of documents.
 - Started retrying requests when parsing errors are encountered to cope with servers being overloaded but returning successful status codes.
 - Added support for Python 3.10 and 3.11.
 - Began checking for and removing corrupted documents from the Corpus.
 
-## Changed
+### Changed
 - Switched from `attrs` and `orjson` to `msgspec` in order to speed up and simplify the serialisation and deserialisation of Corpus data.
 - Reduced the semaphore limit for the NSW Caselaw and Federal Court of Australia database from 30 to 10 to avoid overloading it.
 - Made minor micro-optimisations by replacing lambda functions with named functions.
