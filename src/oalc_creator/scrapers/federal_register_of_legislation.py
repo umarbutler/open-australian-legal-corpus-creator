@@ -177,7 +177,7 @@ class FederalRegisterOfLegislation(Scraper):
             
             if not downloads:
                 warning(f'Unable to retrieve document from {entry.request.path}. No valid version found. The status code of the response was {downloads_page.status}. Returning `None`.')
-                return None
+                return
             
             # Search for Word and then PDF versions of the document.
             for format in ('word', 'pdf'):
@@ -199,11 +199,11 @@ class FederalRegisterOfLegislation(Scraper):
             # If there are neither any Word nor any PDF versions of the document, log a warning and return `None`.
             else:
                 warning(f'Unable to retrieve document from {entry.request.path}. No valid version found. This may be because the document simply does not have any versions available, or it could be that any versions it does have available are unsupported. The status code of the response was {downloads_page.status}. Returning `None`.')
-                return None
+                return
             
             # If there is just one part, use that as the url otherwise append the format's name to the url to the document's download page to indicate how the document was downloaded.
             if len(part_links) == 1:
-                url = part_links[0]
+                url = str(part_links[0]) # NOTE It is necessary to convert the link from a `lxml.etree._ElementUnicodeResult` instance into a string so that it can deserialised by `msgspec` (bizarrely, its type checker does not pick up on such instances not technically being strings, which makes since they behave like strings, but then when you attempt to actually encode it, you will run into errors).
             
             else:
                 url = f'{url}#{format}'
