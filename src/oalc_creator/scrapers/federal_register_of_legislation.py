@@ -32,7 +32,7 @@ class FederalRegisterOfLegislation(Scraper):
             source='federal_register_of_legislation',
             indices_refresh_interval=indices_refresh_interval,
             index_refresh_interval=index_refresh_interval,
-            semaphore=semaphore or asyncio.Semaphore(10), # Employ a lower semaphore limit to avoid overloading the NSW Caselaw database.
+            semaphore=semaphore,
             session=session,
         )
         
