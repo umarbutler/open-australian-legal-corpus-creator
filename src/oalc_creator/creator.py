@@ -10,11 +10,13 @@ from contextlib import ExitStack
 
 import aiohttp
 
+from msgspec import DecodeError
 from platformdirs import user_data_dir
 from rich.markdown import Markdown
 
 from .data import Entry, encoder, Entries, Request, entries_decoder, document_decoder, requests_decoder
-from .helpers import log, console, load_json, save_json, load_jsonl, save_jsonl, alive_gather, alive_as_completed
+from .helpers import (log, console, warning, load_json, save_json, load_jsonl, save_jsonl, alive_gather,
+                      alive_as_completed)
 from .scraper import Scraper
 from .metadata import DATA_VERSIONS
 from .scrapers import (NswCaselaw, NswLegislation, HighCourtOfAustralia, TasmanianLegislation, QueenslandLegislation,
@@ -226,12 +228,18 @@ class Creator:
                 for entry in entries.entries
             }
             
-            # Deduplicate the Corpus and remove any documents that have the same source as the sources being scraped and do not appear in the sources' indices; and also store the version ids of documents not removed from the Corpus in order to later identify missing documents to be added to the Corpus.
+            # Deduplicate (and, if necessary, repair) the Corpus and remove any documents that have the same source as the sources being scraped and do not appear in the sources' indices; and also store the version ids of documents not removed from the Corpus in order to later identify missing documents to be added to the Corpus.
             corpus_version_ids = []
             
             with open(self.corpus_path, 'rb') as corpus_file, open(f'{self.corpus_path}.tmp', 'wb') as tmp_file:
-                for line in corpus_file:
-                    doc = document_decoder(line)
+                for i, line in enumerate(corpus_file):
+                    try:
+                        doc = document_decoder(line)
+                    
+                    except DecodeError as e:
+                        warning(f"Failed to decode document #{i + 1:,} when loading the Corpus. The error encountered was: '{e}'. The document will be treated as corrupted and will be removed from the Corpus.")
+                        
+                        continue
                     
                     if doc.version_id not in corpus_version_ids and (doc.version_id in entries or doc.source not in self.scrapers):
                         tmp_file.write(line)
