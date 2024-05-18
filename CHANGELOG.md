@@ -1,20 +1,23 @@
 ## Changelog 🔄
 All notable changes to the Open Australian Legal Corpus Creator will be documented here. This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.0.0] - 2024-XX-XX
 ## Added
 - Introduced the `when_scraped` field of documents.
 - Started retrying requests when parsing errors are encountered to cope with servers being overloaded but returning successful status codes.
 - Added support for Python 3.10 and 3.11.
+- Began checking for and removing corrupted documents from the Corpus.
 
 ## Changed
 - Switched from `attrs` and `orjson` to `msgspec` in order to speed up and simplify the serialisation and deserialisation of Corpus data.
-- Began storing Corpus data as arrays rather than dictionaries in order to speed up serialisation and deserialisation and also compress the data.
+- Began storing Corpus data as arrays rather than dictionaries in order to speed up the serialisation and deserialisation of Corpus data and also to reduce the Corpus' memory footprint.
+- Reduced the semaphore limit for the NSW Caselaw and Federal Court of Australia database from 30 to 10 to avoid overloading it.
 - Made minor micro-optimisations by replacing lambda functions with named functions.
 
 ### Fixed
 - Skipped scraping web pages from the NSW Legislation database that contain the substring 'No fragments found.' due to a newly identified bug in the database (see, eg, https://legislation.nsw.gov.au/view/whole/html/inforce/2021-03-25/act-1944-031).
 - Skipped scraping web pages from the Tasmanian Legislation database that contain the substring 'No fragments found.' due to a newly identified bug in the database (see, eg, https://www.legislation.tas.gov.au/view/whole/html/inforce/current/act-2022-033).
+- Fixed a bug wherein documents from the Federal Register of Legislation database stored as DOC files were parsed as DOCX files by searching for PDF versions instead or otherwise skipping them.
 
 ## [1.0.1] - 2024-02-17
 ### Fixed
