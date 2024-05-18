@@ -7,6 +7,7 @@ from datetime import timedelta
 import aiohttp
 import lxml.html
 import pdfplumber
+import pdfminer.pdfparser
 
 from inscriptis.css_profiles import CSS_PROFILES
 from inscriptis.html_properties import Display
@@ -108,12 +109,18 @@ class NswCaselaw(Scraper):
             url = f'https://www.caselaw.nsw.gov.au/asset/{match.group(1)}'
             resp = await self.get(url)
             
-            with pdfplumber.open(resp.stream) as pdf:
-                # NOTE We override `x_tolerance` as the default tolerance causes words to stick together.
-                text = '\n'.join(page.extract_text(x_tolerance=2) for page in pdf.pages)
+            # Raise a `ParseError` if the PDF can't be loaded.
+            try:
+                with pdfplumber.open(resp.stream) as pdf:
+                    # NOTE We override `x_tolerance` as the default tolerance causes words to stick together.
+                    text = '\n'.join(page.extract_text(x_tolerance=2) for page in pdf.pages)
+                    
+                    # Remove the header.
+                    text = re.sub(r'[^\n]*JOBNAME: [^\n]+\n/reports/[^\n]+\n?', '', text)
                 
-                # Remove the header.
-                text = re.sub(r'[^\n]*JOBNAME: [^\n]+\n/reports/[^\n]+\n?', '', text)
+            except pdfminer.pdfparser.PDFSyntaxError as e:
+                raise ParseError(f'Unable to extract text from PDF at {url}.') from e
+            
         else:
             # Construct an etree from the response.
             etree = lxml.html.fromstring(resp)
