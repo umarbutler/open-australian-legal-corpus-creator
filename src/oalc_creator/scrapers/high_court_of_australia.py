@@ -132,7 +132,7 @@ class HighCourtOfAustralia(Scraper):
             # Retrieve the document.
             resp = await self.get(url)
             
-            # Return None if the document is missing.
+            # Return `None` if the document is missing.
             if b'Document could not be found' in resp or b'There were no matching cases.' in resp:
                 return
         
