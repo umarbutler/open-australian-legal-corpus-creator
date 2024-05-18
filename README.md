@@ -4,7 +4,7 @@ The [Open Australian Legal Corpus](https://huggingface.co/datasets/umarbutler/op
 To learn more about the Corpus and how it was built, please see Umar Butler's article, [*How I built the largest open database of Australian law*](https://umarbutler.com/how-i-built-the-largest-open-database-of-australian-law/). If you're looking to download the Corpus, you may do so on [Hugging Face](https://huggingface.co/datasets/umarbutler/open-australian-legal-corpus).
 
 ## Requirements
-The Open Australian Legal Corpus Creator requires Python 3.12 or higher.
+The Open Australian Legal Corpus Creator requires Python 3.10 or higher.
 
 Before running the Creator, it is **essential** that you are authorised to scrape and use the sources' data.
 
