@@ -129,7 +129,7 @@ class QueenslandLegislation(Scraper):
         # Retrieve the document.
         resp = await self.get(entry.request)
         
-        # If error 404 is encountered, return None.
+        # If error 404 is encountered, return `None`.
         if resp.status == 404:
             warning(f'Unable to retrieve document from {entry.request.path}. Error 404 (Not Found) encountered. Returning `None`.')
             

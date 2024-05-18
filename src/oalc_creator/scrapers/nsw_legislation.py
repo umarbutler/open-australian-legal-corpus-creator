@@ -70,8 +70,8 @@ class NswLegislation(Scraper):
         # Create entries from the paths and titles.
         entries = await asyncio.gather(*[self._get_entry(path, title, type) for path, title in paths_and_titles])
         
-        # Filter out entries that are None.
-        # NOTE It is possible for some documents to simply be missing which is why we filter out None rather than raising an exception.
+        # Filter out entries that are `None`.
+        # NOTE It is possible for some documents to simply be missing which is why we filter out `s` rather than raising an exception.
         entries = {entry for entry in entries if entry}
         
         return entries
@@ -90,8 +90,8 @@ class NswLegislation(Scraper):
             # Retrieve the document's status page.
             resp = await self.get(f"https://legislation.nsw.gov.au/view/html/inforce/current/{doc_id}")
 
-            # If error 404 is encountered, return None.
-            # NOTE It is possible for some documents to simply be missing which is why we return None rather than raising an exception.
+            # If error 404 is encountered, return `None`.
+            # NOTE It is possible for some documents to simply be missing which is why we return `None` rather than raising an exception.
             if resp.status == 404:
                 warning(f'Unable to retrieve document from https://legislation.nsw.gov.au/view/html/inforce/current/{doc_id}. Error 404 (Not Found) encountered. Returning `None`.')
                 

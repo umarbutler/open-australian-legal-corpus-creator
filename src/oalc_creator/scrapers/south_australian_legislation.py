@@ -65,8 +65,8 @@ class SouthAustralianLegislation(Scraper):
         # Create entries from the rows.
         entries = await asyncio.gather(*[self._get_entry(row, type) for row in rows])
         
-        # Filter out any entries that are None.
-        # NOTE It is possible for documents not to be available on the database (see, eg, https://www.legislation.sa.gov.au/lz?path=/c/a/appraisers%20act%20and%20auctioneers%20act%20repeal%20act%201980 and https://www.legislation.sa.gov.au/lz?path=/c/a/adelaide%20show%20grounds%20(by-laws)%20act%201929 ). This is why it is acceptable for `self._get_entry` to return None.
+        # Filter out any entries that are `None`.
+        # NOTE It is possible for documents not to be available on the database (see, eg, https://www.legislation.sa.gov.au/lz?path=/c/a/appraisers%20act%20and%20auctioneers%20act%20repeal%20act%201980 and https://www.legislation.sa.gov.au/lz?path=/c/a/adelaide%20show%20grounds%20(by-laws)%20act%201929 ). This is why it is acceptable for `self._get_entry` to return `None`.
         entries = {entry for entry in entries if entry}
         
         return entries
@@ -79,8 +79,8 @@ class SouthAustralianLegislation(Scraper):
         # Retrieve the document's status page.
         resp = (await self.get(status_page_path)).text
         
-        # Extract the link to the latest version of the document as well as the document's id if it is available otherwise return None.
-        # NOTE It is possible for documents not to be available on the database (see, eg, https://www.legislation.sa.gov.au/lz?path=/c/a/appraisers%20act%20and%20auctioneers%20act%20repeal%20act%201980 and https://www.legislation.sa.gov.au/lz?path=/c/a/adelaide%20show%20grounds%20(by-laws)%20act%201929 ). This is why it is acceptable to return None.
+        # Extract the link to the latest version of the document as well as the document's id if it is available otherwise return `None`.
+        # NOTE It is possible for documents not to be available on the database (see, eg, https://www.legislation.sa.gov.au/lz?path=/c/a/appraisers%20act%20and%20auctioneers%20act%20repeal%20act%201980 and https://www.legislation.sa.gov.au/lz?path=/c/a/adelaide%20show%20grounds%20(by-laws)%20act%201929 ). This is why it is acceptable to return `None`.
         if (url_doc_id := re.search(r'<a\s+href="(https://www\.legislation\.sa\.gov\.au/__legislation/.+/current/(.+)\.rtf)"', resp)):
             url, doc_id = url_doc_id.groups()
         

@@ -127,7 +127,7 @@ class FederalRegisterOfLegislation(Scraper):
                 request = Request(f"https://www.legislation.gov.au/{entry['id']}"),
                 version_id=entry['searchContexts']['fullTextVersion']['registerId'],
                 source=self.source,
-                type=self._collections[entry['collection']][0], # NOTE it is possible for the document type to be None (eg, for Norfolk Island legislation); in such cases, the document type is determined when retrieving the document.
+                type=self._collections[entry['collection']][0], # NOTE it is possible for the document type to be `None` (eg, for Norfolk Island legislation); in such cases, the document type is determined when retrieving the document.
                 jurisdiction=self._collections[entry['collection']][1],
                 title=entry['name'],
             )
