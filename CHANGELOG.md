@@ -10,7 +10,6 @@ All notable changes to the Open Australian Legal Corpus Creator will be document
 
 ## Changed
 - Switched from `attrs` and `orjson` to `msgspec` in order to speed up and simplify the serialisation and deserialisation of Corpus data.
-- Began storing Corpus data as arrays rather than dictionaries in order to speed up the serialisation and deserialisation of Corpus data and also reduce the Corpus' memory footprint.
 - Reduced the semaphore limit for the NSW Caselaw and Federal Court of Australia database from 30 to 10 to avoid overloading it.
 - Made minor micro-optimisations by replacing lambda functions with named functions.
 

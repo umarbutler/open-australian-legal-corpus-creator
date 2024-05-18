@@ -13,7 +13,7 @@ from frozndict import frozendict
 
 encoder = msgspec.json.Encoder().encode
 
-class Request(msgspec.Struct, frozen = True, array_like = True):
+class Request(msgspec.Struct, frozen = True):
     """A request."""
 
     path: str
@@ -75,7 +75,7 @@ class Response(bytes):
         # NOTE It is necessary to convert the response to a `bytes` object before passing it to `orjson.loads()` as that function refuses to accept objects of the `Response` type despite the fact that `Response` is a subclass of `bytes`.
         return orjson.loads(bytes(self))
 
-class Entry(msgspec.Struct, frozen = True, array_like = True):
+class Entry(msgspec.Struct, frozen = True):
     """An entry in a document index."""
 
     request: Request
@@ -99,14 +99,14 @@ class Entry(msgspec.Struct, frozen = True, array_like = True):
         
         return f'{source}:{version_id}'
 
-class Entries(msgspec.Struct, frozen = True, array_like = True):
+class Entries(msgspec.Struct, frozen = True):
     request: Request
     entries: set[Entry]
     when_indexed: float
 
 entries_decoder: Callable[[dict], Entries] = msgspec.json.Decoder(Entries).decode
 
-class Document(msgspec.Struct, frozen = True, array_like = True):
+class Document(msgspec.Struct, frozen = True):
     """A document."""
     
     version_id: str
