@@ -3,9 +3,11 @@ import asyncio
 
 from math import ceil
 from datetime import timedelta
+from zipfile import BadZipFile
 
 import aiohttp
 import lxml.html
+import lxml.etree
 import pdfplumber
 
 from inscriptis.css_profiles import CSS_PROFILES
@@ -212,24 +214,49 @@ class FederalRegisterOfLegislation(Scraper):
             part_resps = await asyncio.gather(*[self.get(part_link) for part_link in part_links])
             
             # Extract the text of the version's parts.
-            match format:
-                case 'word':
-                    # Convert the parts to HTML.
-                    # NOTE Converting DOCX files to HTML with `mammoth` outperforms using `pypandoc`, `python-docx`, `docx2txt` and `docx2python` to convert DOCX files directly to text.
+            if format == 'word':
+                # Convert the parts to HTML.
+                # NOTE Converting DOCX files to HTML with `mammoth` outperforms using `pypandoc`, `python-docx`, `docx2txt` and `docx2python` to convert DOCX files directly to text.
+                # NOTE Some documents in the database are stored as DOC files and there is absolutely no indication beforehand whether a document will be a DOC or DOCX, thus, we need to check if a `BadZipFile` or `ParserError` exception is raised and if it is, check if there are any PDF versions we can scrape instead. It is also technically possible to convert DOC files to DOCX but there are only two Python libraries capable of doing so and one of them (doc2docx) is dependant on Microsoft Word being installed and so only supports Windows and Mac and also does not work on Python 3.12 (https://github.com/cosmojg/doc2docx/issues/2) and the other library (Spire.Doc) is paid.
+                try:
                     htmls = [docx_to_html(resp.stream) for resp in part_resps]
-                    
+                
                     # Extract text from the generated HTML.
                     etrees = [lxml.html.fromstring(html.value) for html in htmls]
                     texts = [CustomInscriptis(etree, self._inscriptis_config).get_text() for etree in etrees]
                 
-                case 'pdf':
-                    # Extract the text of the PDFs.
-                    texts = []
+                except (BadZipFile, lxml.etree.ParserError):
+                    # Log a warning.
+                    warning(f"Unable to convert '{entry.request.path}' to HTML as it is stored as a .DOC file and not a .DOCX file and the parsing of .DOC files is not supported. Looking for a PDF version to scrape instead and, if one is not found, returning `None`.")
                     
-                    for resp in part_resps:
-                        with pdfplumber.open(resp.stream) as pdf:
-                            # NOTE Although `pdfplumber` appears incapable of distinguishing between visual line breaks (ie, from sentences wrapping around a page) and semantic/real line breaks, a workaround is to instruct `pdfplumber` to retain blank chars, thereby preserving trailing whitespaces before newlines, and then replace those trailing whitespaces with a single space thereby removing visual line breaks.
-                            texts.append('\n'.join(re.sub(r'\s\n', ' ', page.extract_text(keep_blank_chars=True)) for page in pdf.pages))
+                    # Search for PDF versions of the document.
+                    format = 'pdf'
+                    format_downloads = downloads[0].xpath(f".//*[contains(concat(' ', normalize-space(@class), ' '), ' document-format-{format} ')]")
+                    
+                    if not format_downloads:
+                        return
+                    
+                    part_links = format_downloads[0].xpath(".//a/@href")
+                    
+                    if not part_links:
+                        return
+                    
+                    if len(part_links) == 1:
+                        url = str(part_links[0])
+                    
+                    else:
+                        url = f'{url.split("#word")[0]}#{format}'
+                    
+                    part_resps = await asyncio.gather(*[self.get(part_link) for part_link in part_links])
+                
+            if format == 'pdf':
+                # Extract the text of the PDFs.
+                texts = []
+                
+                for resp in part_resps:
+                    with pdfplumber.open(resp.stream) as pdf:
+                        # NOTE Although `pdfplumber` appears incapable of distinguishing between visual line breaks (ie, from sentences wrapping around a page) and semantic/real line breaks, a workaround is to instruct `pdfplumber` to retain blank chars, thereby preserving trailing whitespaces before newlines, and then replace those trailing whitespaces with a single space thereby removing visual line breaks.
+                        texts.append('\n'.join(re.sub(r'\s\n', ' ', page.extract_text(keep_blank_chars=True)) for page in pdf.pages))
             
             # Stitch together the version's parts to form the full text of the version.
             text = '\n'.join(texts)
