@@ -11,17 +11,6 @@ from alive_progress import alive_bar
 
 console = Console()
 
-def dict2inst(cls):
-    """Convert a dictionary to an instance of a class with the same attributes if the object passed is not already an instance of that class."""
-    
-    def wrapper(obj):
-        if isinstance(obj, cls):
-            return obj
-        
-        return cls(**obj)
-        
-    return wrapper
-
 def log(func: Callable) -> Callable:
     """Log any arguments passed to a function when an exception arises."""
     
