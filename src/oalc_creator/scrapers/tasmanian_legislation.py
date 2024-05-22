@@ -107,7 +107,7 @@ class TasmanianLegislation(Scraper):
         resp = resp.text
     
         # If the response contains the substring 'Content Not Found.', then return `None` as there is a bug in the Tasmanian Legislation database preventing the retrieval of certain documents (see, eg, https://www.legislation.tas.gov.au/view/whole/html/inforce/current/act-2022-033).
-        if 'Content Not Found.' in resp.text:
+        if 'Content Not Found' in resp:
             warning(f"Unable to retrieve document from {entry.request.path}. 'Content Not Found.' encountered in the response, indicating that the document is missing from the Tasmanian Legislation database. Returning `None`.")
             return
         
