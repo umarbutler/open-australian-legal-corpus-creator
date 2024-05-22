@@ -87,10 +87,21 @@ class SouthAustralianLegislation(Scraper):
         else:
             return None
         
-        # Extract the date the document's status page was last modified and then append the document's id to produce the document's version id.
-        # NOTE Unfortunately, the South Australian Legislation database does not provide version ids nor does it provide a way to determine the date of a document's version from its status page, so we have to use the date the document's status page was last modified as a proxy for the date of the document's version.
-        last_mod_date = re.search(r'<meta\s+name="dcterms.modified"\s+content="(\d{4}-\d{2}-\d{2})', resp).group(1)
-        version_id = f'{last_mod_date}/{doc_id}'
+        # Attempt to extract the end date of the previous version of the document and use the date immediately following it as the document's date and version id if possible.
+        date = None
+        
+        if (prev_end_date := re.search(r'\(\d{2} [A-Z][a-z]+ \d{4} - (\d{2} [A-Z][a-z]+ \d{4}), Authorised\)', resp)):
+            date = prev_end_date.group(1)
+            date = datetime.strptime(date, '%d %B %Y') + timedelta(days=1)
+            date = date.strftime('%Y-%m-%d')
+            
+            version_id = f'{date}/{doc_id}'
+            
+        # Otherwise, extract the date the document's status page was last modified and then append the document's id to produce the document's version id.
+        # NOTE Unfortunately, the South Australian Legislation database does not provide version ids nor does it provide a way to determine the date of a document's version from its status page apart from looking at the end date of the previous version, so we have to use the XXH3 64-bit hexidecimal hash of the status page's `main` element as the document's version id.
+        else:
+            version_hash = xxh3_64_hexdigest(re.search(r'<main[^>]*>(.*?)</main>', resp, re.DOTALL).group(1))
+            version_id = f'{version_hash}/{doc_id}'
         
         return Entry(
             request=Request(url, encoding='cp1252'),
