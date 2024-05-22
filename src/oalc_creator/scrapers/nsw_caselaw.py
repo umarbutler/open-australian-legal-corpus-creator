@@ -91,7 +91,7 @@ class NswCaselaw(Scraper):
             for entry in resp['searchableDecisions']
             
             # Filter out empty and restricted decisions.
-            if not entry['restricted'] and ('title' not in entry or (entry['title'] != 'Decision number not in use' and entry['title'] != 'Decision restricted'))
+            if not entry['restricted'] and ('title' not in entry or ('decision number not in use' not in (cleaned_title := ' '.join(entry['title'].lower().split())) and 'decision restricted' not in cleaned_title))
         }
 
     @log
