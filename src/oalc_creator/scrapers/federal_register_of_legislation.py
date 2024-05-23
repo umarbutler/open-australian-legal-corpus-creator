@@ -235,11 +235,13 @@ class FederalRegisterOfLegislation(Scraper):
                     format_downloads = downloads[0].xpath(f".//*[contains(concat(' ', normalize-space(@class), ' '), ' document-format-{format} ')]")
                     
                     if not format_downloads:
+                        warning(f'Unable to retrieve document from {entry.request.path}. No valid version found. This may be because the document simply does not have any versions available, or it could be that any versions it does have available are unsupported. The status code of the response was {downloads_page.status}. Returning `None`.')
                         return
                     
                     part_links = format_downloads[0].xpath(".//a/@href")
                     
                     if not part_links:
+                        warning(f'Unable to retrieve document from {entry.request.path}. No valid version found. This may be because the document simply does not have any versions available, or it could be that any versions it does have available are unsupported. The status code of the response was {downloads_page.status}. Returning `None`.')
                         return
                     
                     if len(part_links) == 1:
