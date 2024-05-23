@@ -12,7 +12,7 @@ from inscriptis.css_profiles import CSS_PROFILES
 from inscriptis.html_properties import Display
 from inscriptis.model.html_element import HtmlElement
 
-from ..data import Entry, Request, Document, make_doc
+from ..data import Entry, Request, Document, make_doc, Response
 from ..helpers import log, warning, format_date
 from ..scraper import Scraper
 from ..custom_inscriptis import CustomInscriptis, CustomParserConfig
@@ -134,7 +134,7 @@ class QueenslandLegislation(Scraper):
         date = entry.date
         
         # Retrieve the document.
-        resp = await self.get(entry.request)
+        resp: Response = await self.get(entry.request)
         
         # Try extracting the date if its not available.
         if not date and (match := re.search(r'publication.date="(\d{4}-\d{1,2}-\d{1,2})"', resp.text, re.IGNORECASE)):
@@ -157,6 +157,9 @@ class QueenslandLegislation(Scraper):
             # Extract the text of the document.
             with pdfplumber.open(resp) as pdf:
                 text = '\n'.join(page.extract_text_simple() for page in pdf.pages)
+            
+            # Store the mime of the document.
+            mime = 'application/pdf'
             
         else:
             # Store the document's url.
@@ -183,6 +186,9 @@ class QueenslandLegislation(Scraper):
 
             # Extract the text of the document.
             text = CustomInscriptis(text_elm, self._inscriptis_config).get_text()
+            
+            # Store the mime of the document.
+            mime = 'text/html'
         
         # Return the document.
         return make_doc(
@@ -190,6 +196,7 @@ class QueenslandLegislation(Scraper):
             type=entry.type,
             jurisdiction=entry.jurisdiction,
             source=entry.source,
+            mime=mime,
             date=date,
             citation=entry.title,
             url=url,

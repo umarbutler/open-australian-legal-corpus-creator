@@ -114,12 +114,15 @@ class NswCaselaw(Scraper):
                 with pdfplumber.open(resp.stream) as pdf:
                     # NOTE We override `x_tolerance` as the default tolerance causes words to stick together.
                     text = '\n'.join(page.extract_text(x_tolerance=2) for page in pdf.pages)
-                    
-                    # Remove the header.
-                    text = re.sub(r'[^\n]*JOBNAME: [^\n]+\n/reports/[^\n]+\n?', '', text)
                 
             except pdfminer.pdfparser.PDFSyntaxError as e:
                 raise ParseError(f'Unable to extract text from PDF at {url}.') from e
+
+            # Remove the header.
+            text = re.sub(r'[^\n]*JOBNAME: [^\n]+\n/reports/[^\n]+\n?', '', text)
+            
+            # Store the mime of the document.
+            mime = 'application/pdf'
             
         else:
             # Construct an etree from the response.
@@ -169,6 +172,9 @@ class NswCaselaw(Scraper):
 
             # Insert a newline before the endnotes divider (note I have seen 10 asterisks used as a divider as well as 9, so for good measure, this will match 7 or more asterisks).
             text = re.sub(r'(\n\*{7,}\n)', r'\n\1', text)
+            
+            # Store the mime of the document.
+            mime = 'text/html'
                 
         # Create the document.
         return make_doc(
@@ -176,6 +182,7 @@ class NswCaselaw(Scraper):
             type=self._type,
             jurisdiction=self._jurisdiction,
             source=self.source,
+            mime=mime,
             date=entry.date,
             citation=entry.title,
             url=url,

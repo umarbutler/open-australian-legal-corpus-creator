@@ -12,7 +12,7 @@ from inscriptis.css_profiles import CSS_PROFILES
 from inscriptis.html_properties import Display
 from inscriptis.model.html_element import HtmlElement
 
-from ..data import Entry, Request, Document, make_doc
+from ..data import Entry, Request, Document, make_doc, Response
 from ..helpers import log, warning
 from ..scraper import Scraper
 from ..custom_inscriptis import CustomInscriptis, CustomParserConfig
@@ -129,7 +129,7 @@ class NswLegislation(Scraper):
     @log
     async def _get_doc(self, entry: Entry) -> Document | None:
         # Retrieve the document.
-        resp = await self.get(entry.request)
+        resp: Response = await self.get(entry.request)
         
         # If error 404 is encountered, return `None`.
         # NOTE It is possible for some documents to simply be missing which is why we return `None` rather than raising an exception.
@@ -177,6 +177,7 @@ class NswLegislation(Scraper):
             type=entry.type,
             jurisdiction=entry.jurisdiction,
             source=entry.source,
+            mime=resp.type,
             date=entry.date,
             citation=entry.title,
             url=entry.request.path,

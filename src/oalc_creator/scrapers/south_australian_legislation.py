@@ -10,7 +10,7 @@ import aiohttp
 
 from striprtf.striprtf import rtf_to_text
 
-from ..data import Entry, Request, Document, make_doc
+from ..data import Entry, Request, Document, make_doc, Response
 from ..helpers import log
 from ..scraper import Scraper
 from xxhash import xxh3_64_hexdigest
@@ -79,7 +79,7 @@ class SouthAustralianLegislation(Scraper):
         status_page_path, title = re.search(r'<a\s+href="[^"]+"\s+title="([^"]+)"\s*>((?:.|\n)*?)</a>', row).groups()
         
         # Retrieve the document's status page.
-        resp = (await self.get(status_page_path)).text
+        resp: Response = (await self.get(status_page_path)).text
         
         # Extract the link to the latest version of the document as well as the document's id if it is available otherwise return `None`.
         # NOTE It is possible for documents not to be available on the database (see, eg, https://www.legislation.sa.gov.au/lz?path=/c/a/appraisers%20act%20and%20auctioneers%20act%20repeal%20act%201980 and https://www.legislation.sa.gov.au/lz?path=/c/a/adelaide%20show%20grounds%20(by-laws)%20act%201929). This is why it is acceptable to return `None`.
@@ -118,7 +118,7 @@ class SouthAustralianLegislation(Scraper):
     @log
     async def _get_doc(self, entry: Entry) -> Document | None:
         # Retrieve the document.
-        resp = await self.get(entry.request)
+        resp: Response = await self.get(entry.request)
         
         # If the document's date is not known, attempt to extract it.
         date = entry.date
@@ -139,6 +139,7 @@ class SouthAustralianLegislation(Scraper):
             type=entry.type,
             jurisdiction=entry.jurisdiction,
             source=entry.source,
+            mime='application/rtf',
             date=date,
             citation=entry.title,
             url=entry.request.path,

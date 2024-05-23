@@ -168,6 +168,9 @@ class FederalRegisterOfLegislation(Scraper):
                 
             # Extract the text of the document.
             text = CustomInscriptis(etree, self._inscriptis_config).get_text()
+
+            # Store the mime of the document.
+            mime = 'text/html'
         
         # If there is no link to the document's HTML full text, search for other versions of the document.
         else:
@@ -225,6 +228,9 @@ class FederalRegisterOfLegislation(Scraper):
                     # Extract text from the generated HTML.
                     etrees = [lxml.html.fromstring(html.value) for html in htmls]
                     texts = [CustomInscriptis(etree, self._inscriptis_config).get_text() for etree in etrees]
+                    
+                    # Store the mime of the document.
+                    mime = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
                 
                 except (BadZipFile, lxml.etree.ParserError):
                     # Log a warning.
@@ -253,6 +259,9 @@ class FederalRegisterOfLegislation(Scraper):
                     part_resps = await asyncio.gather(*[self.get(part_link) for part_link in part_links])
                 
             if format == 'pdf':
+                # Store the mime of the document.
+                mime = 'application/pdf'
+                
                 # Extract the text of the PDFs.
                 texts = []
                 
@@ -270,6 +279,7 @@ class FederalRegisterOfLegislation(Scraper):
             type=type,
             jurisdiction=entry.jurisdiction,
             source=entry.source,
+            mime=mime,
             date=entry.date,
             citation=entry.title,
             url=url,

@@ -139,6 +139,7 @@ class WesternAustralianLegislation(Scraper):
             type=entry.type,
             jurisdiction=entry.jurisdiction,
             source=entry.source,
+            mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             date=entry.date,
             citation=entry.title,
             url=entry.request.path,

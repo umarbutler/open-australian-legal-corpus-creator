@@ -148,6 +148,9 @@ class HighCourtOfAustralia(Scraper):
                 # If a `UnicodeDecodeError` is raised, then we know that the document is actually a DOC (despite the fact that it was labelled an RTF).
                 try:                    
                     text = rtf_to_text(resp.text, encoding='cp1252', errors='ignore')
+                    
+                    # Store the mime of the document.
+                    mime = 'application/rtf'
                 
                 except UnicodeDecodeError:
                     # Convert the document to HTML.
@@ -158,6 +161,9 @@ class HighCourtOfAustralia(Scraper):
                     etree = lxml.html.fromstring(html.value)
                     text = CustomInscriptis(etree, self._inscriptis_config).get_text()
                     
+                    # Store the mime of the document.
+                    mime = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                    
             case 'DOCX':
                 # Convert the document to HTML.
                 # NOTE Converting DOCX files to HTML with `mammoth` outperforms using `pypandoc`, `python-docx`, `docx2txt` and `docx2python` to convert DOCX files directly to text.
@@ -166,11 +172,17 @@ class HighCourtOfAustralia(Scraper):
                 # Extract text from the generated HTML.
                 etree = lxml.html.fromstring(html.value)
                 text = CustomInscriptis(etree, self._inscriptis_config).get_text()
+                
+                # Store the mime of the document.
+                mime = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
             
             case 'PDF':
                 # Extract the text of the document from the PDF.
                 with pdfplumber.open(resp.stream) as pdf:
                     text = '\n'.join(page.extract_text_simple() for page in pdf.pages)
+                
+                # Store the mime of the document.
+                mime = 'application/pdf'
             
             case 'HTML':
                 # Construct an etree from the response.
@@ -184,6 +196,9 @@ class HighCourtOfAustralia(Scraper):
                 
                 # Remove newlines from the beginning of the text.
                 text = re.sub(r'^\n+', '', text)
+                
+                # Store the mime of the document.
+                mime = 'text/html'
         
         # Create the document.
         return make_doc(
@@ -191,6 +206,7 @@ class HighCourtOfAustralia(Scraper):
             type=entry.type,
             jurisdiction=entry.jurisdiction,
             source=entry.source,
+            mime=mime,
             date=date,
             citation=entry.title,
             url=url,

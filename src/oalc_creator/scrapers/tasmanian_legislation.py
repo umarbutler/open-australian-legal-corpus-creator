@@ -136,6 +136,7 @@ class TasmanianLegislation(Scraper):
             type=entry.type,
             jurisdiction=entry.jurisdiction,
             source=entry.source,
+            mime='text/html',
             date=entry.date,
             citation=entry.title,
             url=url,

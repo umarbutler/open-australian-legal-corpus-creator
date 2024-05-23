@@ -143,6 +143,9 @@ class FederalCourtOfAustralia(Scraper):
             warning(f'Unable to retrieve document from {entry.request.path}. Error 404 (Not Found) encountered. Returning `None`.')
             
             return
+        
+        # Store the mime of the document.
+        mime = resp.type
 
         # Store the url of the document (this is to allow for the url to be overriden in the event that we must retrieve the DOCX version of the document, which will occur if it is not possible to decode the document).
         url = entry.request.path
@@ -158,9 +161,12 @@ class FederalCourtOfAustralia(Scraper):
                     # If a `UnicodeDecodeError` is encountered, try decoding the response as `cp1252` instead (this is also possible (see, eg, https://www.judgments.fedcourt.gov.au/judgments/Judgments/fca/single/2007/2007fca0517)).
                     except UnicodeDecodeError:
                         resp = resp.decode('cp1252')
-                
+
                 # If we are unable to decode the response, retrieve the DOCX version of the document instead.
                 except UnicodeDecodeError:
+                    # Update the mime of the document.
+                    mime = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                    
                     # Extract the url of the DOCX version of the document.
                     url = re.search(rb'<a\s+href="([^"]+)"\s*>Original Word Document', resp).group(1).decode('cp1252')
                     
@@ -176,7 +182,7 @@ class FederalCourtOfAustralia(Scraper):
                     text = CustomInscriptis(etree, self._inscriptis_config).get_text()
                 
                 # If we were able to decode the response, extract text from it.
-                else:      
+                else:                    
                     # Remove break elements that are neither preceded nor followed by another break element (the intention is to remove extra newlines). NOTE We use the `regex` module as `re` requires fixed-width lookbehinds.
                     resp = regex.sub(r'(?<!<br />\s*)<br />(?!\s*<br />)', '', resp)
                     
@@ -227,6 +233,7 @@ class FederalCourtOfAustralia(Scraper):
             type=entry.type,
             jurisdiction=entry.jurisdiction,
             source=entry.source,
+            mime=mime,
             date=date,
             citation=entry.title,
             url=url,

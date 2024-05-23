@@ -115,6 +115,7 @@ class Document(msgspec.Struct, frozen = True):
     type: str
     jurisdiction: str
     source: str
+    mime: str
     date: str | None
     citation: str
     url: str
@@ -170,6 +171,7 @@ def make_doc(
     type: str,
     jurisdiction: str,
     source: str,
+    mime: str,
     date: str,
     citation: str,
     url: str,
@@ -184,6 +186,7 @@ def make_doc(
         type = type,
         jurisdiction = jurisdiction,
         source = source,
+        mime = mime,
         date = date,
         citation = citation,
         url = url,
