@@ -2,6 +2,7 @@ import re
 import asyncio
 
 from datetime import datetime, timedelta
+from concurrent.futures import ThreadPoolExecutor
 
 import pytz
 import aiohttp
@@ -26,13 +27,15 @@ class NswLegislation(Scraper):
                  index_refresh_interval: bool | timedelta = None,
                  semaphore: asyncio.Semaphore = None,
                  session: aiohttp.ClientSession = None,
+                 thread_pool_executor: ThreadPoolExecutor = None
                  ) -> None:
         super().__init__(
             source='nsw_legislation',
             indices_refresh_interval=indices_refresh_interval,
             index_refresh_interval=index_refresh_interval,
             semaphore=semaphore,
-            session=session
+            session=session,
+            thread_pool_executor=thread_pool_executor
         )
 
         self._jurisdiction = 'new_south_wales'

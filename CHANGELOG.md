@@ -10,6 +10,7 @@ All notable changes to the Open Australian Legal Corpus Creator will be document
 ### Changed
 - Suffixed the ids of documents in the Western Australian legislation database with their version ids, delimited by a slash, in order to make it easier to track changes to documents.
 - Started filtering out documents with texts that, after being cleaned and stripped of non-alphabetic characters, are less than 9 characters long.
+- Started OCRing PDFs from the High Court of Australia database as they were poorly OCR'd.
 
 ### Fixed
 - Improved removal of empty and restricted decisions from the NSW Caselaw database by making existing keyword searches for 'Decision number not in use' and 'Decision restricted' case- and whitespace-insensitive.

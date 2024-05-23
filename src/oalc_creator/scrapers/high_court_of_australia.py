@@ -2,6 +2,7 @@ import re
 import asyncio
 
 from datetime import datetime, timedelta
+from concurrent.futures import ThreadPoolExecutor
 
 import pytz
 import aiohttp
@@ -15,7 +16,7 @@ from inscriptis.html_properties import Display
 from inscriptis.model.html_element import HtmlElement
 
 from ..data import Entry, Request, Document, make_doc
-from ..helpers import log
+from ..helpers import log, batch_generator
 from ..scraper import Scraper
 from ..custom_mammoth import docx_to_html
 from ..custom_inscriptis import CustomInscriptis, CustomParserConfig
@@ -29,22 +30,25 @@ class HighCourtOfAustralia(Scraper):
                  index_refresh_interval: bool | timedelta = None,
                  semaphore: asyncio.Semaphore = None,
                  session: aiohttp.ClientSession = None,
+                 thread_pool_executor: ThreadPoolExecutor = None,
                  ) -> None:
         super().__init__(
             source='high_court_of_australia',
             indices_refresh_interval=indices_refresh_interval,
             index_refresh_interval=index_refresh_interval,
             semaphore=semaphore or asyncio.Semaphore(4), # NOTE We use a lower semaphore as the High Court of Australia database applies rate limiting.
-            session=session
+            session=session,
+            thread_pool_executor=thread_pool_executor,
         )
+
+        self._type = 'decision'
+        self._jurisdiction = 'commonwealth'
+        self._ocr_batch_size = self.thread_pool_executor._max_workers * 5
         
         # NOTE We increase our wait times to account for the High Court of Australia database's rate limiting.
         self.stop_after_waiting += 30 * 60
         self.max_wait += 5 * 60
         self.wait_base += 1
-
-        self._type = 'decision'
-        self._jurisdiction = 'commonwealth'
         
         # Create a custom Inscriptis CSS profile.
         inscriptis_profile = CSS_PROFILES['strict'].copy()

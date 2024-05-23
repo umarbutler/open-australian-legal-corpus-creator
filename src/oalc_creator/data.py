@@ -9,7 +9,7 @@ from functools import cached_property
 import orjson
 import msgspec
 
-from helpers import warning, clean_text
+from .helpers import warning, clean_text
 from frozndict import frozendict
 
 encoder = msgspec.json.Encoder().encode

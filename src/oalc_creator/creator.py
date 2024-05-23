@@ -3,10 +3,12 @@ import random
 import shutil
 import os.path
 import pathlib
+import multiprocessing
 
 from typing import Iterable
 from datetime import datetime
 from contextlib import ExitStack
+from concurrent.futures import ThreadPoolExecutor
 
 import aiohttp
 
@@ -14,7 +16,7 @@ from msgspec import DecodeError
 from platformdirs import user_data_dir
 from rich.markdown import Markdown
 
-from .data import Entry, encoder, Entries, Request, entries_decoder, document_decoder, requests_decoder
+from .data import encoder, Entries, Request, entries_decoder, document_decoder, requests_decoder
 from .helpers import (log, console, warning, load_json, save_json, load_jsonl, save_jsonl, alive_gather,
                       alive_as_completed)
 from .scraper import Scraper
@@ -24,7 +26,7 @@ from .scrapers import (NswCaselaw, NswLegislation, HighCourtOfAustralia, Tasmani
                        WesternAustralianLegislation)
 
 # Initialise a map of the names of sources to their scrapers.
-SOURCES = {
+SOURCES: dict[str, Scraper] = {
     'federal_court_of_australia' : FederalCourtOfAustralia,
     'federal_register_of_legislation' : FederalRegisterOfLegislation,
     'high_court_of_australia' : HighCourtOfAustralia,
@@ -43,17 +45,24 @@ class Creator:
                  sources: Iterable[str | Scraper] = None,
                  corpus_path: str = None,
                  data_dir: str = None,
+                 n_threads: int = None,
                  ) -> None:
         """Initialise the creator of the Open Australian Legal Corpus.
         
         Args:
             sources (Iterable[str | Scraper], optional): The names of the sources to be scraped or the scrapers themselves. Possible sources are `federal_court_of_australia`, `federal_register_of_legislation`, `high_court_of_australia`, `nsw_caselaw`, `nsw_legislation`, `queensland_legislation`, `south_australian_legislation`, `western_australian_legislation` and `tasmanian_legislation`. Defaults to all supported sources.
             corpus_path (str, optional): The path to the Corpus. Defaults to a file named `corpus.jsonl` in the current working directory.
-            data_dir (str, optional): The path to the directory in which Corpus data should be stored. Defaults to the user's data directory as determined by `platformdirs.user_data_dir` (on Windows, this will be `C:/Users/<username>/AppData/Local/Umar Butler/Open Australian Legal Corpus`)."""
+            data_dir (str, optional): The path to the directory in which Corpus data should be stored. Defaults to the user's data directory as determined by `platformdirs.user_data_dir` (on Windows, this will be `C:/Users/<username>/AppData/Local/Umar Butler/Open Australian Legal Corpus`).
+            n_threads (int, optional): The number of threads to use for OCRing PDFs with `tesseract`. Defaults to the number of logical CPUs on the system minus one, or one if there is only one logical CPU."""
+        
+        # Initialise a thread pool executor if any of the scrapers are names and not instances of `Scraper`.
+        if any(not isinstance(source, Scraper) for source in sources or {}):
+            n_threads = n_threads or multiprocessing.cpu_count() - 1 or 1
+            thread_pool_executor = ThreadPoolExecutor(n_threads)
 
         # Initialise scrapers.
         sources = sources or SOURCES.keys()
-        self.scrapers = {(SOURCES[source]() if not isinstance(source, Scraper) else source) for source in sources}
+        self.scrapers = {(SOURCES[source](thread_pool_executor = thread_pool_executor) if not isinstance(source, Scraper) else source) for source in sources}
         self.scrapers: dict[str, Scraper] = {scraper.source : scraper for scraper in self.scrapers}
         """A map of the names of sources to their scrapers."""
 

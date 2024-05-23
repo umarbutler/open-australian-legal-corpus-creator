@@ -2,8 +2,9 @@ import re
 import asyncio
 
 from math import ceil
-from datetime import timedelta
 from zipfile import BadZipFile
+from datetime import timedelta
+from concurrent.futures import ThreadPoolExecutor
 
 import aiohttp
 import lxml.html
@@ -17,8 +18,8 @@ from inscriptis.model.html_element import HtmlElement
 from ..data import Entry, Request, Document, make_doc
 from ..helpers import log, warning
 from ..scraper import Scraper
-from ..custom_inscriptis import CustomInscriptis, CustomParserConfig
 from ..custom_mammoth import docx_to_html
+from ..custom_inscriptis import CustomInscriptis, CustomParserConfig
 
 
 class FederalRegisterOfLegislation(Scraper):
@@ -29,6 +30,7 @@ class FederalRegisterOfLegislation(Scraper):
                  index_refresh_interval: bool | timedelta = None,
                  semaphore: asyncio.Semaphore = None,
                  session: aiohttp.ClientSession = None,
+                 thread_pool_executor: ThreadPoolExecutor = None,
                  ) -> None:
         super().__init__(
             source='federal_register_of_legislation',
@@ -36,6 +38,7 @@ class FederalRegisterOfLegislation(Scraper):
             index_refresh_interval=index_refresh_interval,
             semaphore=semaphore,
             session=session,
+            thread_pool_executor=thread_pool_executor,
         )
         
         # Add status codes to the list of status codes to retry on that are transient errors that occur when the Federal Register of Legislation's servers are overloaded.

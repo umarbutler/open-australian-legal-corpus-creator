@@ -3,7 +3,8 @@ import string
 import asyncio
 import itertools
 
-from datetime import timedelta
+from datetime import datetime, timedelta
+from concurrent.futures import ThreadPoolExecutor
 
 import aiohttp
 import lxml.html
@@ -11,7 +12,6 @@ import lxml.html
 from inscriptis.css_profiles import CSS_PROFILES
 from inscriptis.html_properties import Display
 from inscriptis.model.html_element import HtmlElement
-from datetime import datetime
 
 from ..data import Entry, Request, Document, make_doc
 from ..helpers import log
@@ -28,13 +28,15 @@ class WesternAustralianLegislation(Scraper):
                  index_refresh_interval: bool | timedelta = None,
                  semaphore: asyncio.Semaphore = None,
                  session: aiohttp.ClientSession = None,
+                 thread_pool_executor: ThreadPoolExecutor = None,
                  ) -> None:
         super().__init__(
             source='western_australian_legislation',
             indices_refresh_interval=indices_refresh_interval or False,
             index_refresh_interval=index_refresh_interval,
             semaphore=semaphore,
-            session=session
+            session=session,
+            thread_pool_executor=thread_pool_executor,
         )
 
         self._jurisdiction = 'western_australia'

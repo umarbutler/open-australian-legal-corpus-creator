@@ -2,7 +2,8 @@ import re
 import math
 import asyncio
 
-from datetime import timedelta
+from datetime import datetime, timedelta
+from concurrent.futures import ThreadPoolExecutor
 
 import regex
 import aiohttp
@@ -10,7 +11,6 @@ import lxml.html
 import pdfplumber
 import aiohttp.client_exceptions
 
-from datetime import datetime
 from inscriptis.css_profiles import CSS_PROFILES
 from inscriptis.html_properties import Display
 from inscriptis.model.html_element import HtmlElement
@@ -30,12 +30,14 @@ class FederalCourtOfAustralia(Scraper):
                  index_refresh_interval: bool | timedelta = None,
                  semaphore: asyncio.Semaphore = None,
                  session: aiohttp.ClientSession = None,
+                 thread_pool_executor: ThreadPoolExecutor = None,
                  ) -> None:
         super().__init__(
             source='federal_court_of_australia',
             indices_refresh_interval=indices_refresh_interval,
             index_refresh_interval=index_refresh_interval,
             semaphore=semaphore or asyncio.Semaphore(10), # Employ a lower semaphore limit to avoid overloading the database.
+            thread_pool_executor=thread_pool_executor,
             session=session
         )
         

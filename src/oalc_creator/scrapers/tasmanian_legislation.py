@@ -3,6 +3,7 @@ import asyncio
 import itertools
 
 from datetime import datetime, timedelta
+from concurrent.futures import thread, ThreadPoolExecutor
 
 import pytz
 import aiohttp
@@ -26,13 +27,15 @@ class TasmanianLegislation(Scraper):
                  index_refresh_interval: bool | timedelta = None,
                  semaphore: asyncio.Semaphore = None,
                  session: aiohttp.ClientSession = None,
+                 thread_pool_executor: ThreadPoolExecutor = None,
                  ) -> None:
         super().__init__(
             source='tasmanian_legislation',
             indices_refresh_interval=indices_refresh_interval,
             index_refresh_interval=index_refresh_interval,
             semaphore=semaphore,
-            session=session
+            session=session,
+            thread_pool_executor=thread_pool_executor,
         )
 
         self._jurisdiction = 'tasmania'

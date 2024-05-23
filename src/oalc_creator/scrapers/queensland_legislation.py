@@ -2,6 +2,7 @@ import re
 import asyncio
 
 from datetime import datetime, timedelta
+from concurrent.futures import ThreadPoolExecutor
 
 import pytz
 import aiohttp
@@ -13,7 +14,7 @@ from inscriptis.html_properties import Display
 from inscriptis.model.html_element import HtmlElement
 
 from ..data import Entry, Request, Document, make_doc, Response
-from ..helpers import log, warning, format_date
+from ..helpers import log, warning
 from ..scraper import Scraper
 from ..custom_inscriptis import CustomInscriptis, CustomParserConfig
 
@@ -26,13 +27,15 @@ class QueenslandLegislation(Scraper):
                  index_refresh_interval: bool | timedelta = None,
                  semaphore: asyncio.Semaphore = None,
                  session: aiohttp.ClientSession = None,
+                 thread_pool_executor: ThreadPoolExecutor = None,
                  ) -> None:
         super().__init__(
             source='queensland_legislation',
             indices_refresh_interval=indices_refresh_interval,
             index_refresh_interval=index_refresh_interval,
             semaphore=semaphore,
-            session=session
+            session=session,
+            thread_pool_executor=thread_pool_executor,
         )
 
         self._jurisdiction = 'queensland'

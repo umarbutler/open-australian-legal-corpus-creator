@@ -4,13 +4,14 @@ import asyncio
 from abc import ABC, abstractmethod
 from datetime import timedelta
 from contextlib import nullcontext
+from concurrent.futures import ThreadPoolExecutor
 
 import aiohttp
 import aiohttp.client_exceptions
+import multiprocessing
 
 from .data import Entry, Request, Document, Response
 from .helpers import log
-
 
 class Scraper(ABC):
     """A scraper."""
@@ -30,6 +31,7 @@ class Scraper(ABC):
                         aiohttp.client_exceptions.ClientResponseError,
                  ),
                  retry_statuses: tuple[int] = (429,),
+                 thread_pool_executor: ThreadPoolExecutor = None,
                  ) -> None:
         """Initialise a scraper.
         
@@ -40,7 +42,8 @@ class Scraper(ABC):
             semaphore (asyncio.Semaphore, optional): A semaphore for limiting the number of concurrent requests. Defaults to a semaphore with a limit of 30.
             session (aiohttp.ClientSession, optional): An `aiohttp` session to use for making requests. Defaults to `None`, thereby creating a new session for every request.
             retry_exceptions (tuple[type[BaseException]], optional): A tuple of exceptions to retry on. Defaults to a tuple of `asyncio.TimeoutError`, `aiohttp.ClientConnectorError`, `aiohttp.client_exceptions.ServerDisconnectedError`, `aiohttp.client_exceptions.ClientOSError`, `aiohttp.client_exceptions.ClientPayloadError`, and `aiohttp.client_exceptions.ClientResponseError`.
-            retry_statuses (tuple[int], optional): A tuple of statuses to retry on. Defaults to an empty tuple."""
+            retry_statuses (tuple[int], optional): A tuple of statuses to retry on. Defaults to an empty tuple.
+            thread_pool_executor (ThreadPoolExecutor, optional): A thread pool executor for OCRing PDFs with `tesseract`. Defaults to a new thread pool executor with the same number of threads as the number of logical CPUs on the system minus one, or one if there is only one logical CPU."""
         
         self.source: str = source
         """The name of the source."""
@@ -71,6 +74,9 @@ class Scraper(ABC):
         
         self.wait_base: int = 1.25
         """The exponential backoff base."""
+        
+        self.thread_pool_executor: ThreadPoolExecutor = thread_pool_executor or ThreadPoolExecutor(multiprocessing.cpu_count() - 1 or 1)
+        """A thread pool executor for OCRing PDFs with `tesseract`."""
     
     @abstractmethod
     async def get_index_reqs(self) -> set[Request]:

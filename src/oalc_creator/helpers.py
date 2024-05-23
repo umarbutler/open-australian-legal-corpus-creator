@@ -1,7 +1,8 @@
 import re
 import asyncio
+import itertools
 
-from typing import Any, Callable
+from typing import Any, Callable, Iterable, Generator
 from datetime import datetime
 from textwrap import dedent
 from contextlib import suppress
@@ -159,3 +160,11 @@ def clean_text(text: str) -> str:
     text = re.sub(r'[ \t]+\n', '\n', text)
     
     return text
+
+def batch_generator(iterable: Iterable, batch_size: int) -> Generator[list, None, None]:
+    """Generate batches of the specified size from the provided iterable."""
+    
+    iterator = iter(iterable)
+    
+    for first in iterator:
+        yield list(itertools.chain([first], itertools.islice(iterator, batch_size - 1)))

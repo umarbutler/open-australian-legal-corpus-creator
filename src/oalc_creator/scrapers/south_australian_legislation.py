@@ -1,19 +1,20 @@
-import datetime
 import re
 import string
 import asyncio
+import datetime
 import itertools
 
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
+from concurrent.futures import ThreadPoolExecutor
 
 import aiohttp
 
+from xxhash import xxh3_64_hexdigest
 from striprtf.striprtf import rtf_to_text
 
 from ..data import Entry, Request, Document, make_doc, Response
 from ..helpers import log
 from ..scraper import Scraper
-from xxhash import xxh3_64_hexdigest
 
 
 class SouthAustralianLegislation(Scraper):
@@ -24,13 +25,15 @@ class SouthAustralianLegislation(Scraper):
                  index_refresh_interval: bool | timedelta = None,
                  semaphore: asyncio.Semaphore = None,
                  session: aiohttp.ClientSession = None,
+                 thread_pool_executor: ThreadPoolExecutor = None,
                  ) -> None:
         super().__init__(
             source='south_australian_legislation',
             indices_refresh_interval=indices_refresh_interval,
             index_refresh_interval=index_refresh_interval,
             semaphore=semaphore,
-            session=session
+            session=session,
+            thread_pool_executor=thread_pool_executor,
         )
         
         self._jurisdiction = 'south_australia'

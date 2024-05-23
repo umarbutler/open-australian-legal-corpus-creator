@@ -65,6 +65,8 @@ dependencies = [
     "striprtf",
     "xxhash",
     "uvloop; platform_system != 'Windows'",
+    "tesserocr",
+    "pypdfium2",
 ]
 
 [project.urls]

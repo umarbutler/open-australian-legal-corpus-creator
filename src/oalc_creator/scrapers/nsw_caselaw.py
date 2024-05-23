@@ -17,7 +17,7 @@ from ..data import Entry, Request, Document, make_doc
 from ..helpers import log
 from ..scraper import Scraper, ParseError
 from ..custom_inscriptis import CustomInscriptis, CustomParserConfig
-
+from concurrent.futures import ThreadPoolExecutor
 
 class NswCaselaw(Scraper):
     """A scraper for the NSW Caselaw database."""
@@ -27,13 +27,15 @@ class NswCaselaw(Scraper):
                  index_refresh_interval: bool | timedelta = None,
                  semaphore: asyncio.Semaphore = None,
                  session: aiohttp.ClientSession = None,
+                 thread_pool_executor: ThreadPoolExecutor = None
                  ) -> None:        
         super().__init__(
             source='nsw_caselaw',
             indices_refresh_interval=indices_refresh_interval,
             index_refresh_interval=index_refresh_interval,
             semaphore=semaphore or asyncio.Semaphore(10), # Employ a lower semaphore limit to avoid overloading the NSW Caselaw database.
-            session=session
+            session=session,
+            thread_pool_executor=thread_pool_executor
         )
 
         self._jurisdiction = 'new_south_wales'
