@@ -1,6 +1,21 @@
 ## Changelog 🔄
 All notable changes to the Open Australian Legal Corpus Creator will be documented here. This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Added
+- Added a `date` field.
+
+### Changed
+- Suffixed the ids of documents in the Western Australian legislation database with their version ids, delimited by a slash, in order to make it easier to track changes to documents.
+
+### Fixed
+- Improved removal of empty and restricted decisions from the NSW Caselaw database by making existing keyword searches for 'Decision number not in use' and 'Decision restricted' case- and whitespace-insensitive.
+- Fixed documents from the Western Australian legislation database never being updated due to the use of the last modified date of the status pages of documents as version ids when the last modified date remained constant for all pages by switching to use the XXH3 64-bit hexidecimal hash of the `main` element of the status pages as version ids.
+- Fixed bug preventing the scraping of documents from the Tasmanian Legislation database due to the improper skipping of documents that contain the substring 'Content Not Found.' and also set the substring to skip on to 'Content Not Found' (without a period, as it is not used by the database).
+
+### Removed
+- Removed unused `dict2inst` helper function that converted dictionaries to instances of classes.
+
 ## [2.0.0] - 2024-05-18
 ### Added
 - Introduced the `when_scraped` field of documents.
@@ -15,7 +30,7 @@ All notable changes to the Open Australian Legal Corpus Creator will be document
 
 ### Fixed
 - Skipped scraping web pages from the NSW Legislation database that contain the substring 'No fragments found.' due to a newly identified bug in the database (see, eg, https://legislation.nsw.gov.au/view/whole/html/inforce/2021-03-25/act-1944-031).
-- Skipped scraping web pages from the Tasmanian Legislation database that contain the substring 'No fragments found.' due to a newly identified bug in the database (see, eg, https://www.legislation.tas.gov.au/view/whole/html/inforce/current/act-2022-033).
+- Skipped scraping web pages from the Tasmanian Legislation database that contain the substring 'Content Not Found.' due to a newly identified bug in the database (see, eg, https://www.legislation.tas.gov.au/view/whole/html/inforce/current/act-2022-033).
 - Fixed a bug wherein documents from the Federal Register of Legislation database stored as DOC files were parsed as DOCX files by searching for PDF versions instead or otherwise skipping them.
 
 ## [1.0.1] - 2024-02-17
