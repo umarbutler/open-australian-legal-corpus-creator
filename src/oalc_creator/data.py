@@ -23,6 +23,7 @@ class Request(msgspec.Struct, frozen = True):
     encoding: str = 'utf-8'
     
     def __post_init__(self) -> None:
+        # Convert the data and headers to `frozendict` objects if they are not already.
         if not isinstance(self.data, frozendict):
             msgspec.structs.force_setattr(self, 'data', frozendict(self.data))
         
