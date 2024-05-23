@@ -63,6 +63,7 @@ dependencies = [
     "regex",
     "rich",
     "striprtf",
+    "xxhash",
     "uvloop; platform_system != 'Windows'",
 ]
 

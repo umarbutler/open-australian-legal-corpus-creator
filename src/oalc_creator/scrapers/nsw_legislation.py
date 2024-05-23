@@ -78,6 +78,8 @@ class NswLegislation(Scraper):
     
     @log
     async def _get_entry(self, path: str, title: str, type: str) -> Entry | None:
+        date = None
+        
         # If the document's path begins with 'asmade/' then we already have its version id.
         if path.startswith('asmade/'):
             version_id = path
@@ -101,6 +103,7 @@ class NswLegislation(Scraper):
                 case 'text/html':
                     # Extract the point in time of the latest version of the document.
                     pit = re.search(r'<a\s+href="/search\?pointInTime=(\d{4}-\d{2}-\d{2})&', resp.text).group(1)
+                    date = pit
                 
                 # If a PDF version of the document is returned, then we must use the current point in time.
                 case 'application/pdf':
@@ -119,6 +122,7 @@ class NswLegislation(Scraper):
             source=self.source,
             type=type,
             jurisdiction=self._jurisdiction,
+            date=date,
             title=title,
         )
 
@@ -173,6 +177,7 @@ class NswLegislation(Scraper):
             type=entry.type,
             jurisdiction=entry.jurisdiction,
             source=entry.source,
+            date=entry.date,
             citation=entry.title,
             url=entry.request.path,
             text=text

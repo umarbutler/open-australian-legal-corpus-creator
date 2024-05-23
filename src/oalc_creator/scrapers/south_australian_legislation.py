@@ -1,9 +1,10 @@
+import datetime
 import re
 import string
 import asyncio
 import itertools
 
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 import aiohttp
 
@@ -12,6 +13,7 @@ from striprtf.striprtf import rtf_to_text
 from ..data import Entry, Request, Document, make_doc
 from ..helpers import log
 from ..scraper import Scraper
+from xxhash import xxh3_64_hexdigest
 
 
 class SouthAustralianLegislation(Scraper):
@@ -66,7 +68,7 @@ class SouthAustralianLegislation(Scraper):
         entries = await asyncio.gather(*[self._get_entry(row, type) for row in rows])
         
         # Filter out any entries that are `None`.
-        # NOTE It is possible for documents not to be available on the database (see, eg, https://www.legislation.sa.gov.au/lz?path=/c/a/appraisers%20act%20and%20auctioneers%20act%20repeal%20act%201980 and https://www.legislation.sa.gov.au/lz?path=/c/a/adelaide%20show%20grounds%20(by-laws)%20act%201929 ). This is why it is acceptable for `self._get_entry` to return `None`.
+        # NOTE It is possible for documents not to be available in the database (see, eg, https://www.legislation.sa.gov.au/lz?path=/c/a/appraisers%20act%20and%20auctioneers%20act%20repeal%20act%201980 and https://www.legislation.sa.gov.au/lz?path=/c/a/adelaide%20show%20grounds%20(by-laws)%20act%201929). This is why it is acceptable for `self._get_entry` to return `None`.
         entries = {entry for entry in entries if entry}
         
         return entries
@@ -80,7 +82,7 @@ class SouthAustralianLegislation(Scraper):
         resp = (await self.get(status_page_path)).text
         
         # Extract the link to the latest version of the document as well as the document's id if it is available otherwise return `None`.
-        # NOTE It is possible for documents not to be available on the database (see, eg, https://www.legislation.sa.gov.au/lz?path=/c/a/appraisers%20act%20and%20auctioneers%20act%20repeal%20act%201980 and https://www.legislation.sa.gov.au/lz?path=/c/a/adelaide%20show%20grounds%20(by-laws)%20act%201929 ). This is why it is acceptable to return `None`.
+        # NOTE It is possible for documents not to be available on the database (see, eg, https://www.legislation.sa.gov.au/lz?path=/c/a/appraisers%20act%20and%20auctioneers%20act%20repeal%20act%201980 and https://www.legislation.sa.gov.au/lz?path=/c/a/adelaide%20show%20grounds%20(by-laws)%20act%201929). This is why it is acceptable to return `None`.
         if (url_doc_id := re.search(r'<a\s+href="(https://www\.legislation\.sa\.gov\.au/__legislation/.+/current/(.+)\.rtf)"', resp)):
             url, doc_id = url_doc_id.groups()
         
@@ -109,6 +111,7 @@ class SouthAustralianLegislation(Scraper):
             source=self.source,
             type=type,
             jurisdiction=self._jurisdiction,
+            date=date,
             title=title,
         )
 
@@ -116,7 +119,17 @@ class SouthAustralianLegislation(Scraper):
     async def _get_doc(self, entry: Entry) -> Document | None:
         # Retrieve the document.
         resp = await self.get(entry.request)
-
+        
+        # If the document's date is not known, attempt to extract it.
+        date = entry.date
+        
+        if not date:
+            date_str = re.search(rb'Version: (\d{1,2}\.\d{1,2}\.\d{4})', resp)
+            
+            if date_str:
+                date = date_str.group(1).decode('cp1252')
+                date = datetime.strptime(date, '%d.%m.%Y').strftime('%Y-%m-%d')
+                
         # Extract text from the document.
         text = rtf_to_text(resp.text, encoding='cp1252', errors='ignore')
 
@@ -126,6 +139,7 @@ class SouthAustralianLegislation(Scraper):
             type=entry.type,
             jurisdiction=entry.jurisdiction,
             source=entry.source,
+            date=date,
             citation=entry.title,
             url=entry.request.path,
             text=text,

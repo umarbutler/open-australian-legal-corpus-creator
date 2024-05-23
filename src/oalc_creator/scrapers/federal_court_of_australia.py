@@ -10,12 +10,13 @@ import lxml.html
 import pdfplumber
 import aiohttp.client_exceptions
 
+from datetime import datetime
 from inscriptis.css_profiles import CSS_PROFILES
 from inscriptis.html_properties import Display
 from inscriptis.model.html_element import HtmlElement
 
 from ..data import Entry, Request, Document, make_doc
-from ..helpers import log, warning
+from ..helpers import log, warning, format_date
 from ..scraper import Scraper
 from ..custom_mammoth import docx_to_html
 from ..custom_inscriptis import CustomInscriptis, CustomParserConfig
@@ -125,10 +126,11 @@ class FederalCourtOfAustralia(Scraper):
                 source=self.source,
                 type='decision',
                 jurisdiction='norfolk_island' if '/Judgments/nfsc/' in url else 'commonwealth', # NOTE Decisions of the Supreme Court of Norfolk Island are included in the Federal Court of Australia database although they do not belong to the `commonwealth` jurisdiction. Norfolk Island is the only exception.
+                date=date.strftime('%Y-%m-%d') if (date := datetime.strptime(longdate.strip(), '%d %b %Y')).year >= 1976 else None, # NOTE We exclude dates earlier than 1976 (when the FCA was founded) because, for some reason, recent decisions can sometimes be assigned dates that are far too early, sometimes dated to 202 AD (see, eg, https://www.judgments.fedcourt.gov.au/judgments/Judgments/fca/single/2024/2024fca0255 which at the time of writing was dated to 20 March 202 AD). Later on, we will attempt to correct these dates by attempting to extract the correct date from the text of the document using regex.
                 title=title,
             )
             
-            for url, title in re.findall(r'<a href="(https://www\.judgments\.fedcourt\.gov\.au/judgments/Judgments/[^"]+)"\s+title="([^"]*)">', resp)
+            for (url, title), longdate in zip(re.findall(r'<a href="(https://www\.judgments\.fedcourt\.gov\.au/judgments/Judgments/[^"]+)"\s+title="([^"]*)">', resp), re.findall(r'<p class=meta>([^<]*)<span class="divide">', resp))
         }
 
     @log
@@ -213,12 +215,19 @@ class FederalCourtOfAustralia(Scraper):
             case _:
                 raise ValueError(f'Unable to retrieve document from {url}. Invalid content type: {resp.type}.')
         
+        # If a date was not extracted for the document from the index, attempt to extract it from the text of the document using regex.
+        date = entry.date
+        
+        if not date and (match := re.search(r'(?:(?:date of (?:decision|judgment|judgement|determination)(?: delivery)?)|(?:(?:decision|judgment|judgement|determination) date)|(?:ex tempore)|(?:\ndate)) *:?\s*(\d{1,2}(?:\/| )(?:\d{1,2}|[a-z]+)(?:\/| )\d{4})', text, re.IGNORECASE)):
+            date = format_date(match.group(1))
+
         # Return the document.
         return make_doc(
             version_id=entry.version_id,
             type=entry.type,
             jurisdiction=entry.jurisdiction,
             source=entry.source,
+            date=date,
             citation=entry.title,
             url=url,
             text=text

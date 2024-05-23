@@ -2,7 +2,7 @@ import re
 import asyncio
 
 from math import ceil
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 import aiohttp
 import lxml.html
@@ -61,7 +61,6 @@ class NswCaselaw(Scraper):
             'indent4' : 20,
         }
 
-
     @log
     async def get_index_reqs(self) -> set[Request]:
         # Retrieve the total number of decisions in the database from the first search engine results page ('SERP').
@@ -85,6 +84,7 @@ class NswCaselaw(Scraper):
                 version_id=entry['id'],
                 source=self.source,
                 jurisdiction=self._jurisdiction,
+                date=datetime.strptime(entry['decisionDateText'], '%d %B %Y').strftime('%Y-%m-%d') if 'decisionDateText' in entry and entry['decisionDateText'] else None, # NOTE We use `decisionDateText` instead of `decisionDate` (which is an integer) because I have seen cases where `decisionDate` is negative, despite `decisionDateText` being valid and indeed truthful upon inspection (see, eg, https://www.caselaw.nsw.gov.au/decision/56b12bc8e4b0e71e17f4eb55).
                 title=f'{(entry["title"] if "title" in entry else "")} {entry["mnc"]}',
             )
             
@@ -176,6 +176,7 @@ class NswCaselaw(Scraper):
             type=self._type,
             jurisdiction=self._jurisdiction,
             source=self.source,
+            date=entry.date,
             citation=entry.title,
             url=url,
             text=text,

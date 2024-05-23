@@ -1,7 +1,9 @@
 import asyncio
 
 from typing import Any, Callable
+from datetime import datetime
 from textwrap import dedent
+from contextlib import suppress
 
 import orjson
 import msgspec
@@ -124,3 +126,12 @@ def warning(message: str) -> None:
     """Log a warning message."""
     
     console.print(f'\n:warning-emoji:  {message}', style='orange1 bold', emoji=True, soft_wrap=True)
+
+def format_date(date: str) -> str:
+    """Format an Australian date into the format 'YYYY-MM-DD'."""
+    
+    for fmt in {'%d %B %Y', '%d %b %Y'}:
+        with suppress(ValueError):
+            return datetime.strptime(date, fmt).strftime('%Y-%m-%d')
+    
+    return datetime.strptime(date, '%d/%m/%Y').strftime('%Y-%m-%d')

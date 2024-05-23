@@ -77,10 +77,11 @@ class TasmanianLegislation(Scraper):
         return {
             Entry(
                 request=Request(f"""https://www.legislation.tas.gov.au/view/whole/html/inforce/current/{result["id"]["__value__"]}"""),
-                version_id=f'{result["publication.date"][:10]}/{result["id"]["__value__"]}',
+                version_id=f'{(date := result["publication.date"][:10])}/{result["id"]["__value__"]}',
                 source=self.source,
                 type=type,
                 jurisdiction=self._jurisdiction,
+                date=date,
                 title=result['title']['__value__'],
             )
             
@@ -135,6 +136,7 @@ class TasmanianLegislation(Scraper):
             type=entry.type,
             jurisdiction=entry.jurisdiction,
             source=entry.source,
+            date=entry.date,
             citation=entry.title,
             url=url,
             text=text

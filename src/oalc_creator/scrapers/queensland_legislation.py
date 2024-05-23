@@ -13,7 +13,7 @@ from inscriptis.html_properties import Display
 from inscriptis.model.html_element import HtmlElement
 
 from ..data import Entry, Request, Document, make_doc
-from ..helpers import log, warning
+from ..helpers import log, warning, format_date
 from ..scraper import Scraper
 from ..custom_inscriptis import CustomInscriptis, CustomParserConfig
 
@@ -92,6 +92,8 @@ class QueenslandLegislation(Scraper):
     
     @log
     async def _get_entry(self, path: str, title: str, type: str) -> Entry:
+        date = None
+        
         # If the document is a bill then we already have its version id.
         if type == 'bill':
             version_id = path
@@ -110,6 +112,7 @@ class QueenslandLegislation(Scraper):
             # Extract the point in time of the latest version of the document.
             pit = re.search(r'PublicationDate%3D(\d+)', resp).group(1)
             pit = f'{pit[:4]}-{pit[4:6]}-{pit[6:8]}'
+            date = pit
 
             # Create the version id by appending the document id to the point in time.
             version_id = f'{pit}/{doc_id}'
@@ -121,13 +124,21 @@ class QueenslandLegislation(Scraper):
             source=self.source,
             type=type,
             jurisdiction=self._jurisdiction,
+            date=date,
             title=title,
         )
     
     @log
-    async def _get_doc(self, entry: Entry) -> Document | None:        
+    async def _get_doc(self, entry: Entry) -> Document | None:
+        # Store the date.
+        date = entry.date
+        
         # Retrieve the document.
         resp = await self.get(entry.request)
+        
+        # Try extracting the date if its not available.
+        if not date and (match := re.search(r'publication.date="(\d{4}-\d{1,2}-\d{1,2})"', resp.text, re.IGNORECASE)):
+            date = match.group(1)
         
         # If error 404 is encountered, return `None`.
         if resp.status == 404:
@@ -179,6 +190,7 @@ class QueenslandLegislation(Scraper):
             type=entry.type,
             jurisdiction=entry.jurisdiction,
             source=entry.source,
+            date=date,
             citation=entry.title,
             url=url,
             text=text

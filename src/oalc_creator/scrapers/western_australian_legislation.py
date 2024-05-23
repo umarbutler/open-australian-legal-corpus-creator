@@ -11,6 +11,7 @@ import lxml.html
 from inscriptis.css_profiles import CSS_PROFILES
 from inscriptis.html_properties import Display
 from inscriptis.model.html_element import HtmlElement
+from datetime import datetime
 
 from ..data import Entry, Request, Document, make_doc
 from ..helpers import log
@@ -73,7 +74,7 @@ class WesternAustralianLegislation(Scraper):
         rows = re.findall(r"<tr>((?:.|\n)*?)</tr>", resp)[1:]
         
         # Extract entries from the rows.
-        return {self._get_entry(row, type) for row in rows}
+        return {await self._get_entry(row, type) for row in rows}
 
     @log
     async def _get_entry(self, row: str, type: str) -> Entry:       
@@ -83,6 +84,25 @@ class WesternAustralianLegislation(Scraper):
         # Extract the version id from the link to the DOCX version of the document.
         version_id = re.search(r"<a href='RedirectURL\?OpenAgent&amp;query=([^']*)\.docx' class='tooltip' target='_blank'>", row).group(1)
         
+        # Grab the date of the document.
+        date = re.search(r'<td>(\d{1,2} [A-Z][a-z]+ \d{4})</td>', row)
+        
+        if date:
+            date = date.group(1)
+        
+        # If the date isn't available, grab the document's status page.
+        else:
+            resp = (await self.get(f'https://www.legislation.wa.gov.au/legislation/statutes.nsf/{doc_id}.html')).text
+            date = re.search(r'<th>Publication Information:</th><td><a[^>]+>(\d{1,2} [A-Z][a-z]+ \d{4})', resp)
+            
+            if date:
+                date = date.group(1)
+            
+            else:
+                date = re.search(r"<td>(\d{1,2} [A-Z][a-z]+ \d{4})</td><td class='current'>", resp).group(1)
+        
+        date = datetime.strptime(date, '%d %b %Y').strftime('%Y-%m-%d')
+
         # Build the request from the version id.
         req = Request(f'https://www.legislation.wa.gov.au/legislation/statutes.nsf/RedirectURL?OpenAgent&query={version_id}.docx')
         
@@ -95,6 +115,7 @@ class WesternAustralianLegislation(Scraper):
             type=type,
             jurisdiction=self._jurisdiction,
             source=self.source,
+            date=date,
             title=title
         )
 
@@ -118,6 +139,7 @@ class WesternAustralianLegislation(Scraper):
             type=entry.type,
             jurisdiction=entry.jurisdiction,
             source=entry.source,
+            date=entry.date,
             citation=entry.title,
             url=entry.request.path,
             text=text

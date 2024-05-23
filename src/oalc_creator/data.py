@@ -84,6 +84,7 @@ class Entry(msgspec.Struct, frozen = True):
     source: str
     type: str | None = None
     jurisdiction: str | None = None
+    date: str | None = None
     title: str | None = None
 
     def __post_init__(self) -> None:
@@ -114,6 +115,7 @@ class Document(msgspec.Struct, frozen = True):
     type: str
     jurisdiction: str
     source: str
+    date: str | None
     citation: str
     url: str
     when_scraped: str
@@ -168,6 +170,7 @@ def make_doc(
     type: str,
     jurisdiction: str,
     source: str,
+    date: str,
     citation: str,
     url: str,
     text: str,
@@ -181,6 +184,7 @@ def make_doc(
         type = type,
         jurisdiction = jurisdiction,
         source = source,
+        date = date,
         citation = citation,
         url = url,
         when_scraped = datetime.datetime.now().astimezone().isoformat(),

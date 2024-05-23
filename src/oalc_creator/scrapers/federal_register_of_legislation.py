@@ -129,6 +129,7 @@ class FederalRegisterOfLegislation(Scraper):
                 source=self.source,
                 type=self._collections[entry['collection']][0], # NOTE it is possible for the document type to be `None` (eg, for Norfolk Island legislation); in such cases, the document type is determined when retrieving the document.
                 jurisdiction=self._collections[entry['collection']][1],
+                date=entry['searchContexts']['fullTextVersion']['registeredAt'][:10], # Extract the date part of the date-time string.
                 title=entry['name'],
             )
             
@@ -267,6 +268,7 @@ class FederalRegisterOfLegislation(Scraper):
             type=type,
             jurisdiction=entry.jurisdiction,
             source=entry.source,
+            date=entry.date,
             citation=entry.title,
             url=url,
             text=text
