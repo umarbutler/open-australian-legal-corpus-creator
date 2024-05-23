@@ -9,6 +9,7 @@ from functools import cached_property
 import orjson
 import msgspec
 
+from helpers import warning, clean_text
 from frozndict import frozendict
 
 encoder = msgspec.json.Encoder().encode
@@ -179,7 +180,17 @@ def make_doc(
 ) -> Document:
     """Create a document."""
     
+    # Format the citation.
     citation = format_citation(citation, type, jurisdiction)
+    
+    # Clean the text.
+    text = clean_text(text)
+    
+    # Return `None` if, when stripped of non-alphabetic characters, the text is less than 9 characters long.
+    if len(re.sub(r'\W', '', text)) < 9:
+        warning(f'The text of {url} was, when stripped of non-alphabetic characters, less than 9 characters long. The text extracted was "{text}". Returning `None`.')
+        
+        return
     
     return Document(
         version_id = version_id,

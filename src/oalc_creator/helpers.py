@@ -1,3 +1,4 @@
+import re
 import asyncio
 
 from typing import Any, Callable
@@ -135,3 +136,26 @@ def format_date(date: str) -> str:
             return datetime.strptime(date, fmt).strftime('%Y-%m-%d')
     
     return datetime.strptime(date, '%d/%m/%Y').strftime('%Y-%m-%d')
+
+def clean_text(text: str) -> str:
+    """Clean text."""
+    
+    # Replace non-breaking spaces with regular spaces.
+    text = text.replace('\xa0', ' ')
+
+    # Replace return carriages followed by newlines with newlines.
+    text = text.replace(r'\r\n', '\n')
+
+    # Remove whitespace from lines comprised entirely of whitespace.
+    text = re.sub(r'(?<=\n)\s*(?=\n)', '\n', text)
+
+    # If the text begins with a newline or a newline preceded by whitespace, remove it and any preceding whitespace.
+    text = re.sub(r'^\s*\n', '', text)
+
+    # If the text ends with a newline or a newline succeeded by whitespace, remove it and any succeeding whitespace.
+    text = re.sub(r'\n\s*$', '', text)
+
+    # Remove spaces and tabs from the ends of lines.
+    text = re.sub(r'[ \t]+\n', '\n', text)
+    
+    return text
