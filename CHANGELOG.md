@@ -5,9 +5,11 @@ All notable changes to the Open Australian Legal Corpus Creator will be document
 ### Added
 - Added the `date` field.
 - Added the `mime` field for storing document's MIME types.
+- Started lightly cleaning texts.
 
 ### Changed
 - Suffixed the ids of documents in the Western Australian legislation database with their version ids, delimited by a slash, in order to make it easier to track changes to documents.
+- Started filtering out documents with texts that, after being cleaned and stripped of non-alphabetic characters, are less than 9 characters long.
 
 ### Fixed
 - Improved removal of empty and restricted decisions from the NSW Caselaw database by making existing keyword searches for 'Decision number not in use' and 'Decision restricted' case- and whitespace-insensitive.
