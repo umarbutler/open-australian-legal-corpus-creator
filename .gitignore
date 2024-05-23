@@ -8,6 +8,7 @@
 !pyproject.toml
 !src/
 !src/**/*
+!.isort.cfg
 
 # Finally, exclude anything in the above inclusions that we don't want.
 #   Exclude common Python files and folders.
