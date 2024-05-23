@@ -3,7 +3,8 @@ All notable changes to the Open Australian Legal Corpus Creator will be document
 
 ## [Unreleased]
 ### Added
-- Added a `date` field.
+- Added the `date` field.
+- Added the `mime` field for storing document's MIME types.
 
 ### Changed
 - Suffixed the ids of documents in the Western Australian legislation database with their version ids, delimited by a slash, in order to make it easier to track changes to documents.
@@ -12,6 +13,7 @@ All notable changes to the Open Australian Legal Corpus Creator will be document
 - Improved removal of empty and restricted decisions from the NSW Caselaw database by making existing keyword searches for 'Decision number not in use' and 'Decision restricted' case- and whitespace-insensitive.
 - Fixed documents from the Western Australian legislation database never being updated due to the use of the last modified date of the status pages of documents as version ids when the last modified date remained constant for all pages by switching to use the XXH3 64-bit hexidecimal hash of the `main` element of the status pages as version ids.
 - Fixed bug preventing the scraping of documents from the Tasmanian Legislation database due to the improper skipping of documents that contain the substring 'Content Not Found.' and also set the substring to skip on to 'Content Not Found' (without a period, as it is not used by the database).
+- Ensured that warnings are raised when the only version of a document available from the Federal Register of Legislation is a DOC.
 
 ### Removed
 - Removed unused `dict2inst` helper function that converted dictionaries to instances of classes.
