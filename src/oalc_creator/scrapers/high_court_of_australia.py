@@ -124,7 +124,7 @@ class HighCourtOfAustralia(Scraper):
         url = entry.request.path
         
         # Extract the date of the document if available.
-        if date := re.search(r'<h2>(\d{1,2} [a-z]+ \d{4})</h2>', resp.text, re.IGNORECASE):
+        if date := re.search(r'<h2>(\d{1,2} [A-Z][a-z]+ \d{4})</h2>', resp.text):
             date = datetime.strptime(date.group(1), '%d %b %Y').strftime('%Y-%m-%d')
         
         # NOTE Documents in the High Court of Australia database will either be HTML only or will be stored as PDFs, DOCXs, DOCs and/or RTFs. If a download button exists, that means that the document is not available as HTML. Therefore, we begin searching for whether that is the case.
