@@ -1,5 +1,6 @@
 import os
 import asyncio
+import multiprocessing
 
 import rich
 import click
@@ -38,14 +39,25 @@ install(suppress=[rich, click, asyncio])
     show_default=True,
     help='The directory in which Corpus data should be stored.',
 )
-def create(sources, output, data_dir):
+@click.option(
+    '-n', '--num_threads',
+    default=multiprocessing.cpu_count() - 1 or 1,
+    show_default=True,
+    help='The number of threads to use for OCRing PDFs with `tesseract`.',
+)
+def create(sources, output, data_dir, num_threads):
     """The creator of the Open Australian Legal Corpus."""
     
     # Convert `sources` to a list of source names.
     sources = sources.split(',')
     
     # Create the Corpus.
-    async_run(Creator(sources=sources, corpus_path=output, data_dir=data_dir).create())
+    async_run(Creator(
+        sources=sources,
+        corpus_path=output,
+        data_dir=data_dir,
+        num_threads=num_threads
+    ).create())
 
 if __name__ == '__main__':
     create()
