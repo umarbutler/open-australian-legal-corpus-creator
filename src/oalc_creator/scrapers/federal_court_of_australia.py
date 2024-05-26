@@ -18,7 +18,7 @@ from inscriptis.model.html_element import HtmlElement
 from ..data import Entry, Request, Document, make_doc
 from ..helpers import log, warning, format_date
 from ..scraper import Scraper
-from ..custom_mammoth import docx_to_html
+from ..custom_mammoth import docx2html
 from ..custom_inscriptis import CustomInscriptis, CustomParserConfig
 
 
@@ -177,7 +177,7 @@ class FederalCourtOfAustralia(Scraper):
 
                     # Convert the document to HTML.
                     # NOTE Converting DOCX files to HTML with `mammoth` outperforms using `pypandoc`, `python-docx`, `docx2txt` and `docx2python` to convert DOCX files directly to text.
-                    html = docx_to_html(resp.stream)
+                    html = docx2html(resp.stream)
 
                     # Extract text from the generated HTML.
                     etree = lxml.html.fromstring(html.value)

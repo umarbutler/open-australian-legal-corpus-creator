@@ -18,7 +18,7 @@ from inscriptis.model.html_element import HtmlElement
 from ..data import Entry, Request, Document, make_doc
 from ..helpers import log, warning
 from ..scraper import Scraper
-from ..custom_mammoth import docx_to_html
+from ..custom_mammoth import docx2html
 from ..custom_inscriptis import CustomInscriptis, CustomParserConfig
 
 
@@ -226,7 +226,7 @@ class FederalRegisterOfLegislation(Scraper):
                 # NOTE Converting DOCX files to HTML with `mammoth` outperforms using `pypandoc`, `python-docx`, `docx2txt` and `docx2python` to convert DOCX files directly to text.
                 # NOTE Some documents in the database are stored as DOC files and there is absolutely no indication beforehand whether a document will be a DOC or DOCX, thus, we need to check if a `BadZipFile` or `ParserError` exception is raised and if it is, check if there are any PDF versions we can scrape instead. It is also technically possible to convert DOC files to DOCX but there are only two Python libraries capable of doing so and one of them (doc2docx) is dependant on Microsoft Word being installed and so only supports Windows and Mac and also does not work on Python 3.12 (https://github.com/cosmojg/doc2docx/issues/2) and the other library (Spire.Doc) is paid.
                 try:
-                    htmls = [docx_to_html(resp.stream) for resp in part_resps]
+                    htmls = [docx2html(resp.stream) for resp in part_resps]
                 
                     # Extract text from the generated HTML.
                     etrees = [lxml.html.fromstring(html.value) for html in htmls]

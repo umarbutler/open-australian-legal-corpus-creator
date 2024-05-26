@@ -159,7 +159,7 @@ class HighCourtOfAustralia(Scraper):
                 except UnicodeDecodeError:
                     # Convert the document to HTML.
                     # NOTE Converting DOCX files to HTML with `mammoth` outperforms using `pypandoc`, `python-docx`, `docx2txt` and `docx2python` to convert DOCX files directly to text.
-                    html = docx_to_html(resp.stream)
+                    html = docx2html(resp.stream)
 
                     # Extract text from the generated HTML.
                     etree = lxml.html.fromstring(html.value)
@@ -171,7 +171,7 @@ class HighCourtOfAustralia(Scraper):
             case 'DOCX':
                 # Convert the document to HTML.
                 # NOTE Converting DOCX files to HTML with `mammoth` outperforms using `pypandoc`, `python-docx`, `docx2txt` and `docx2python` to convert DOCX files directly to text.
-                html = docx_to_html(resp.stream)
+                html = docx2html(resp.stream)
 
                 # Extract text from the generated HTML.
                 etree = lxml.html.fromstring(html.value)

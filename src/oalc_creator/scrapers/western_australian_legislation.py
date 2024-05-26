@@ -16,7 +16,7 @@ from inscriptis.model.html_element import HtmlElement
 from ..data import Entry, Request, Document, make_doc
 from ..helpers import log
 from ..scraper import Scraper
-from ..custom_mammoth import docx_to_html
+from ..custom_mammoth import docx2html
 from ..custom_inscriptis import CustomInscriptis, CustomParserConfig
 
 
@@ -128,7 +128,7 @@ class WesternAustralianLegislation(Scraper):
 
         # Convert the document to HTML. 
         # NOTE This appears to be the most reliable method of extracting text from documents on the Western Australian Legislation database. It outperforms using the database's HTML versions of documents (which are often formatted incorrectly), extracting text from or OCR-ing the database's PDF versions, and using the `pypandoc`, `python-docx`, `docx2txt` and `docx2python` libraries to convert the DOCX versions directly to text.
-        html = docx_to_html(resp)
+        html = docx2html(resp)
 
         # Extract text from the generated HTML.
         etree = lxml.html.fromstring(html.value)
