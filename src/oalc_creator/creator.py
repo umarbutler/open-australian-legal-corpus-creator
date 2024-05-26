@@ -45,7 +45,7 @@ class Creator:
                  sources: Iterable[str | Scraper] = None,
                  corpus_path: str = None,
                  data_dir: str = None,
-                 n_threads: int = None,
+                 num_threads: int = None,
                  ) -> None:
         """Initialise the creator of the Open Australian Legal Corpus.
         
@@ -53,12 +53,12 @@ class Creator:
             sources (Iterable[str | Scraper], optional): The names of the sources to be scraped or the scrapers themselves. Possible sources are `federal_court_of_australia`, `federal_register_of_legislation`, `high_court_of_australia`, `nsw_caselaw`, `nsw_legislation`, `queensland_legislation`, `south_australian_legislation`, `western_australian_legislation` and `tasmanian_legislation`. Defaults to all supported sources.
             corpus_path (str, optional): The path to the Corpus. Defaults to a file named `corpus.jsonl` in the current working directory.
             data_dir (str, optional): The path to the directory in which Corpus data should be stored. Defaults to the user's data directory as determined by `platformdirs.user_data_dir` (on Windows, this will be `C:/Users/<username>/AppData/Local/Umar Butler/Open Australian Legal Corpus`).
-            n_threads (int, optional): The number of threads to use for OCRing PDFs with `tesseract`. Defaults to the number of logical CPUs on the system minus one, or one if there is only one logical CPU."""
+            num_threads (int, optional): The number of threads to use for OCRing PDFs with `tesseract`. Defaults to the number of logical CPUs on the system minus one, or one if there is only one logical CPU."""
         
         # Initialise a thread pool executor if any of the scrapers are names and not instances of `Scraper`.
         if any(not isinstance(source, Scraper) for source in sources or {}):
-            n_threads = n_threads or multiprocessing.cpu_count() - 1 or 1
-            thread_pool_executor = ThreadPoolExecutor(n_threads)
+            num_threads = num_threads or multiprocessing.cpu_count() - 1 or 1
+            thread_pool_executor = ThreadPoolExecutor(num_threads)
 
         # Initialise scrapers.
         sources = sources or SOURCES.keys()
