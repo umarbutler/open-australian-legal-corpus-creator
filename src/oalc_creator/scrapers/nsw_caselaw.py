@@ -2,22 +2,22 @@ import re
 import asyncio
 
 from math import ceil
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
+from concurrent.futures import ThreadPoolExecutor
 
 import aiohttp
 import lxml.html
-import pdfplumber
-import pdfminer.pdfparser
 
 from inscriptis.css_profiles import CSS_PROFILES
 from inscriptis.html_properties import Display
 from inscriptis.model.html_element import HtmlElement
 
+from ..ocr import pdf2txt
 from ..data import Entry, Request, Document, make_doc
 from ..helpers import log
 from ..scraper import Scraper, ParseError
 from ..custom_inscriptis import CustomInscriptis, CustomParserConfig
-from concurrent.futures import ThreadPoolExecutor
+
 
 class NswCaselaw(Scraper):
     """A scraper for the NSW Caselaw database."""
@@ -113,11 +113,10 @@ class NswCaselaw(Scraper):
             
             # Raise a `ParseError` if the PDF can't be loaded.
             try:
-                with pdfplumber.open(resp.stream) as pdf:
-                    # NOTE We override `x_tolerance` as the default tolerance causes words to stick together.
-                    text = '\n'.join(page.extract_text(x_tolerance=2) for page in pdf.pages)
+                # Extract the text of the document from the PDF with OCR.
+                text = await pdf2txt(resp.stream, self.ocr_batch_size, self.thread_pool_executor)
                 
-            except pdfminer.pdfparser.PDFSyntaxError as e:
+            except Exception as e:
                 raise ParseError(f'Unable to extract text from PDF at {url}.') from e
 
             # Remove the header.

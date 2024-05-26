@@ -77,6 +77,9 @@ class Scraper(ABC):
         
         self.thread_pool_executor: ThreadPoolExecutor = thread_pool_executor or ThreadPoolExecutor(multiprocessing.cpu_count() - 1 or 1)
         """A thread pool executor for OCRing PDFs with `tesseract`."""
+        
+        self.ocr_batch_size: int = self.thread_pool_executor._max_workers * 5
+        """The number of pages that may be OCR'd concurrently."""
     
     @abstractmethod
     async def get_index_reqs(self) -> set[Request]:

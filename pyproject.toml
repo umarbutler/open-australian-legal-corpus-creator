@@ -57,7 +57,6 @@ dependencies = [
     "msgspec",
     "orjson",
     "pdfminer.six",
-    "pdfplumber",
     "platformdirs",
     "pytz",
     "regex",

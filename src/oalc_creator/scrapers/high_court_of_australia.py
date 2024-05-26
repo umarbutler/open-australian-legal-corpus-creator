@@ -7,7 +7,6 @@ from concurrent.futures import ThreadPoolExecutor
 import pytz
 import aiohttp
 import lxml.html
-import pdfplumber
 import aiohttp.client_exceptions
 
 from striprtf.striprtf import rtf_to_text
@@ -15,10 +14,11 @@ from inscriptis.css_profiles import CSS_PROFILES
 from inscriptis.html_properties import Display
 from inscriptis.model.html_element import HtmlElement
 
+from ..ocr import pdf2txt
 from ..data import Entry, Request, Document, make_doc
 from ..helpers import log, batch_generator
 from ..scraper import Scraper
-from ..custom_mammoth import docx_to_html
+from ..custom_mammoth import docx2html
 from ..custom_inscriptis import CustomInscriptis, CustomParserConfig
 
 
@@ -43,7 +43,6 @@ class HighCourtOfAustralia(Scraper):
 
         self._type = 'decision'
         self._jurisdiction = 'commonwealth'
-        self._ocr_batch_size = self.thread_pool_executor._max_workers * 5
         
         # NOTE We increase our wait times to account for the High Court of Australia database's rate limiting.
         self.stop_after_waiting += 30 * 60
@@ -181,9 +180,8 @@ class HighCourtOfAustralia(Scraper):
                 mime = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
             
             case 'PDF':
-                # Extract the text of the document from the PDF.
-                with pdfplumber.open(resp.stream) as pdf:
-                    text = '\n'.join(page.extract_text_simple() for page in pdf.pages)
+                # Extract the text of the document from the PDF with OCR.
+                text = await pdf2txt(resp.stream, self.ocr_batch_size, self.thread_pool_executor)
                 
                 # Store the mime of the document.
                 mime = 'application/pdf'

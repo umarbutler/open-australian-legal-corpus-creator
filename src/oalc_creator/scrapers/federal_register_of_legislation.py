@@ -9,12 +9,12 @@ from concurrent.futures import ThreadPoolExecutor
 import aiohttp
 import lxml.html
 import lxml.etree
-import pdfplumber
 
 from inscriptis.css_profiles import CSS_PROFILES
 from inscriptis.html_properties import Display, WhiteSpace
 from inscriptis.model.html_element import HtmlElement
 
+from ..ocr import pdf2txt
 from ..data import Entry, Request, Document, make_doc
 from ..helpers import log, warning
 from ..scraper import Scraper
@@ -260,21 +260,16 @@ class FederalRegisterOfLegislation(Scraper):
                         url = f'{url.split("#word")[0]}#{format}'
                     
                     part_resps = await asyncio.gather(*[self.get(part_link) for part_link in part_links])
-                
+
+                # Stitch together the version's parts to form the full text of the version.
+                text = '\n'.join(texts)
+                            
             if format == 'pdf':
+                # Extract the text of the document from the PDF with OCR.
+                text = await pdf2txt(resp.stream, self.ocr_batch_size, self.thread_pool_executor)
+
                 # Store the mime of the document.
                 mime = 'application/pdf'
-                
-                # Extract the text of the PDFs.
-                texts = []
-                
-                for resp in part_resps:
-                    with pdfplumber.open(resp.stream) as pdf:
-                        # NOTE Although `pdfplumber` appears incapable of distinguishing between visual line breaks (ie, from sentences wrapping around a page) and semantic/real line breaks, a workaround is to instruct `pdfplumber` to retain blank chars, thereby preserving trailing whitespaces before newlines, and then replace those trailing whitespaces with a single space thereby removing visual line breaks.
-                        texts.append('\n'.join(re.sub(r'\s\n', ' ', page.extract_text(keep_blank_chars=True)) for page in pdf.pages))
-            
-            # Stitch together the version's parts to form the full text of the version.
-            text = '\n'.join(texts)
             
         # Return the document.
         return make_doc(

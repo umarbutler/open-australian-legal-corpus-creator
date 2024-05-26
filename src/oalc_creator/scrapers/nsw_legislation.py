@@ -7,12 +7,12 @@ from concurrent.futures import ThreadPoolExecutor
 import pytz
 import aiohttp
 import lxml.html
-import pdfplumber
 
 from inscriptis.css_profiles import CSS_PROFILES
 from inscriptis.html_properties import Display
 from inscriptis.model.html_element import HtmlElement
 
+from ..ocr import pdf2txt
 from ..data import Entry, Request, Document, make_doc, Response
 from ..helpers import log, warning
 from ..scraper import Scraper
@@ -167,9 +167,8 @@ class NswLegislation(Scraper):
                 text = CustomInscriptis(text_elm, self._inscriptis_config).get_text()
             
             case 'application/pdf':
-                with pdfplumber.open(resp.stream) as pdf:
-                    # NOTE Although `pdfplumber` appears incapable of distinguishing between visual line breaks (ie, from paragraphs wrapping around a page) and semantic/real line breaks, a workaround is to instruct `pdfplumber` to retain blank chars, thereby preserving trailing whitespaces before newlines, and then replace those trailing whitespaces with a single space thereby removing visual line breaks.
-                    text = '\n'.join(re.sub(r'\s\n', ' ', page.extract_text(keep_blank_chars=True)) for page in pdf.pages)
+                # Extract the text of the document from the PDF with OCR.
+                text = await pdf2txt(resp.stream, self.ocr_batch_size, self.thread_pool_executor)
             
             case _:
                 raise ValueError(f'Unable to retrieve document from {entry.request.path}. Invalid content type: {resp.type}.')

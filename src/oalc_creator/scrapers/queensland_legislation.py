@@ -7,12 +7,12 @@ from concurrent.futures import ThreadPoolExecutor
 import pytz
 import aiohttp
 import lxml.html
-import pdfplumber
 
 from inscriptis.css_profiles import CSS_PROFILES
 from inscriptis.html_properties import Display
 from inscriptis.model.html_element import HtmlElement
 
+from ..ocr import pdf2txt
 from ..data import Entry, Request, Document, make_doc, Response
 from ..helpers import log, warning
 from ..scraper import Scraper
@@ -157,9 +157,8 @@ class QueenslandLegislation(Scraper):
             # Retrieve the PDF.
             resp = (await self.get(Request(url))).stream
             
-            # Extract the text of the document.
-            with pdfplumber.open(resp) as pdf:
-                text = '\n'.join(page.extract_text_simple() for page in pdf.pages)
+            # Extract the text of the document from the PDF with OCR.
+            text = await pdf2txt(resp, self.ocr_batch_size, self.thread_pool_executor)
             
             # Store the mime of the document.
             mime = 'application/pdf'
