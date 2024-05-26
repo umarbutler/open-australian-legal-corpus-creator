@@ -1,3 +1,4 @@
+import re
 import io
 import asyncio
 import multiprocessing
@@ -29,8 +30,8 @@ async def pdf2txt(
     pdf = pypdfium2.PdfDocument(pdf)
    
     # OCR every page of the PDF in batches.
-    # NOTE We using batching to avoid going OOM when we convert the pages into images.
-    txt = []
+    # NOTE We use batching to avoid going OOM when we convert the pages into images.
+    text = []
     
     for pages in batch_generator(pdf, batch_size):
         # Convert the pages into images.
@@ -38,6 +39,12 @@ async def pdf2txt(
         
         # OCR the pages.
         loop = asyncio.get_event_loop()
-        txt.extend(await asyncio.gather(*[loop.run_in_executor(thread_pool_executor, tesserocr.image_to_text, img) for img in imgs]))
+        text.extend(await asyncio.gather(*[loop.run_in_executor(thread_pool_executor, tesserocr.image_to_text, img) for img in imgs]))
+
+    # Join the text.
+    text = '\n'.join(text)
+
+    # Remove paragraph numbers from the text.
+    text = re.sub(r'(^|\n)\d{1,4}[^\S\n]*\n', '', text)
     
-    return '\n'.join(txt)
+    return text
