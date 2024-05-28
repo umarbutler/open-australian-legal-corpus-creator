@@ -31,6 +31,7 @@ class FederalRegisterOfLegislation(Scraper):
                  semaphore: asyncio.Semaphore = None,
                  session: aiohttp.ClientSession = None,
                  thread_pool_executor: ThreadPoolExecutor = None,
+                 ocr_semaphore: asyncio.Semaphore = None,
                  ) -> None:
         super().__init__(
             source='federal_register_of_legislation',
@@ -39,6 +40,7 @@ class FederalRegisterOfLegislation(Scraper):
             semaphore=semaphore,
             session=session,
             thread_pool_executor=thread_pool_executor,
+            ocr_semaphore=ocr_semaphore,
         )
         
         # Add status codes to the list of status codes to retry on that are transient errors that occur when the Federal Register of Legislation's servers are overloaded.
@@ -210,12 +212,9 @@ class FederalRegisterOfLegislation(Scraper):
                 warning(f'Unable to retrieve document from {entry.request.path}. No valid version found. This may be because the document simply does not have any versions available, or it could be that any versions it does have available are unsupported. The status code of the response was {downloads_page.status}. Returning `None`.')
                 return
             
-            # If there is just one part, use that as the url otherwise append the format's name to the url to the document's download page to indicate how the document was downloaded.
+            # If there is just one part, use its link as the url.
             if len(part_links) == 1:
-                url = str(part_links[0]) # NOTE It is necessary to convert the link from a `lxml.etree._ElementUnicodeResult` instance into a string so that it can deserialised by `msgspec` (bizarrely, its type checker does not pick up on such instances not technically being strings, which makes since they behave like strings, but then when you attempt to actually encode it, you will run into errors).
-            
-            else:
-                url = f'{url}#{format}'
+                url = str(part_links[0]) # NOTE It is necessary to convert the link from a `lxml.etree._ElementUnicodeResult` instance into a string so that it can deserialised by `msgspec` (bizarrely, its type checker does not pick up on such instances not technically being strings, which makes sense since they behave like strings, but then when you attempt to actually encode it, you will run into errors).
             
             # Retrieve the version's constituent parts.
             part_resps = await asyncio.gather(*[self.get(part_link) for part_link in part_links])
@@ -224,7 +223,7 @@ class FederalRegisterOfLegislation(Scraper):
             if format == 'word':
                 # Convert the parts to HTML.
                 # NOTE Converting DOCX files to HTML with `mammoth` outperforms using `pypandoc`, `python-docx`, `docx2txt` and `docx2python` to convert DOCX files directly to text.
-                # NOTE Some documents in the database are stored as DOC files and there is absolutely no indication beforehand whether a document will be a DOC or DOCX, thus, we need to check if a `BadZipFile` or `ParserError` exception is raised and if it is, check if there are any PDF versions we can scrape instead. It is also technically possible to convert DOC files to DOCX but there are only two Python libraries capable of doing so and one of them (doc2docx) is dependant on Microsoft Word being installed and so only supports Windows and Mac and also does not work on Python 3.12 (https://github.com/cosmojg/doc2docx/issues/2) and the other library (Spire.Doc) is paid.
+                # NOTE Some documents in the database are stored as DOC files and there is absolutely no indication beforehand whether a document will be a DOC or DOCX, thus, we need to check if a `BadZipFile` or `ParserError` exception is raised and if it is, check if there are any PDF versions we can scrape instead. It is also technically possible to convert DOC files to DOCX but there are only two Python libraries capable of doing so and one of them (`doc2docx`) is dependant on Microsoft Word being installed and so only supports Windows and Mac and also does not work on Python 3.12 (https://github.com/cosmojg/doc2docx/issues/2) and the other library (`Spire.Doc`) is paid.
                 try:
                     htmls = [docx2html(resp.stream) for resp in part_resps]
                 
@@ -243,33 +242,26 @@ class FederalRegisterOfLegislation(Scraper):
                     format = 'pdf'
                     format_downloads = downloads[0].xpath(f".//*[contains(concat(' ', normalize-space(@class), ' '), ' document-format-{format} ')]")
                     
-                    if not format_downloads:
+                    if not format_downloads or not (part_links := format_downloads[0].xpath(".//a/@href")):
                         warning(f'Unable to retrieve document from {entry.request.path}. No valid version found. This may be because the document simply does not have any versions available, or it could be that any versions it does have available are unsupported. The status code of the response was {downloads_page.status}. Returning `None`.')
                         return
                     
-                    part_links = format_downloads[0].xpath(".//a/@href")
-                    
-                    if not part_links:
-                        warning(f'Unable to retrieve document from {entry.request.path}. No valid version found. This may be because the document simply does not have any versions available, or it could be that any versions it does have available are unsupported. The status code of the response was {downloads_page.status}. Returning `None`.')
-                        return
-                    
+                    # If there is just one part, use its link as the url.
                     if len(part_links) == 1:
                         url = str(part_links[0])
                     
-                    else:
-                        url = f'{url.split("#word")[0]}#{format}'
-                    
+                    # Retrieve the version's constituent parts.
                     part_resps = await asyncio.gather(*[self.get(part_link) for part_link in part_links])
-
-                # Stitch together the version's parts to form the full text of the version.
-                text = '\n'.join(texts)
                             
             if format == 'pdf':
-                # Extract the text of the document from the PDF with OCR.
-                text = await pdf2txt(resp.stream, self.ocr_batch_size, self.thread_pool_executor)
+                # Extract the text of the document from its PDF parts.
+                texts = await asyncio.gather(*[pdf2txt(resp.stream, self.ocr_batch_size, self.thread_pool_executor, self.ocr_semaphore) for resp in part_resps])
 
                 # Store the mime of the document.
                 mime = 'application/pdf'
+
+            # Stitch together the version's parts to form the full text of the version.
+            text = '\n'.join(texts)
             
         # Return the document.
         return make_doc(
