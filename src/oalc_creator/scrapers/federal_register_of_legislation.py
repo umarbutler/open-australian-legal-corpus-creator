@@ -1,4 +1,5 @@
 import re
+import random
 import asyncio
 
 from math import ceil
@@ -10,14 +11,15 @@ import aiohttp
 import lxml.html
 import lxml.etree
 
+from pypdfium2 import PdfiumError
 from inscriptis.css_profiles import CSS_PROFILES
 from inscriptis.html_properties import Display, WhiteSpace
 from inscriptis.model.html_element import HtmlElement
 
 from ..ocr import pdf2txt
-from ..data import Entry, Request, Document, make_doc
+from ..data import Entry, Request, Document, make_doc, Response
 from ..helpers import log, warning
-from ..scraper import Scraper
+from ..scraper import Scraper, ParseError
 from ..custom_mammoth import docx2html
 from ..custom_inscriptis import CustomInscriptis, CustomParserConfig
 
@@ -144,6 +146,45 @@ class FederalRegisterOfLegislation(Scraper):
         }
 
     @log
+    async def get(self, req: Request | str) -> Response:
+        attempt = 0
+        elapsed = 0
+        
+        while True:
+            try:
+                content = await super().get(req)
+                
+                if b'The service is unavailable.' in content:
+                    raise ParseError("The Federal Register of Legislation's servers are currently overloaded.")
+                
+                return content
+            
+            except ParseError as e:
+                if elapsed > self.stop_after_waiting:
+                    raise e
+                
+                attempt += 1
+                
+                # Implement exponential backoff with jitter.
+                wait = self.wait_base ** attempt / 2 # We divide by 2 so that `wait + jitter` is always <= `self.wait_base ** attempt`.
+                
+                # Set our jitter to a random number between 0 and `wait`.
+                jitter = random.uniform(0, wait)
+                
+                wait += jitter
+                
+                # If `wait` is greater than `self.max_wait`, set `wait` to `self.max_wait`.
+                wait = min(wait, self.max_wait)
+
+                # Add a little extra jitter to the wait time to handle cases where `wait` has been capped at `self.max_wait`.
+                wait += random.uniform(0, self.max_extra_jitter)
+                
+                # Wait for `wait` seconds.
+                await asyncio.sleep(wait)
+                
+                elapsed += wait
+
+    @log
     async def _get_doc(self, entry: Entry) -> Document | None:
         # If no document type was set, determine the document type from the title.
         if entry.type is None:
@@ -245,6 +286,7 @@ class FederalRegisterOfLegislation(Scraper):
                     format_downloads = downloads[0].xpath(f".//*[contains(concat(' ', normalize-space(@class), ' '), ' document-format-{format} ')]")
                     
                     if not format_downloads or not (part_links := format_downloads[0].xpath(".//a/@href")):
+                        # NOTE As of 1 June 2024, there are no documents that are stored as DOC files but do not also have a PDF version. Nevertheless, we log a warning just in case that ever changed somehow.
                         warning(f'Unable to retrieve document from {entry.request.path}. No valid version found. This may be because the document simply does not have any versions available, or it could be that any versions it does have available are unsupported. The status code of the response was {downloads_page.status}. Returning `None`.')
                         return
                     
@@ -257,7 +299,14 @@ class FederalRegisterOfLegislation(Scraper):
                             
             if format == 'pdf':
                 # Extract the text of the document from its PDF parts.
-                texts = await asyncio.gather(*[pdf2txt(resp.stream, self.ocr_batch_size, self.thread_pool_executor, self.ocr_semaphore) for resp in part_resps])
+                try:
+                    texts = await asyncio.gather(*[pdf2txt(resp.stream, self.ocr_batch_size, self.thread_pool_executor, self.ocr_semaphore) for resp in part_resps])
+                
+                except PdfiumError as e:
+                    # Log a warning.
+                    warning(f"Unable to extract text from '{entry.request.path}' as it or one of its constituent parts does not appear to be a valid PDF. The error message was: {e} It is possible that this is a transient error caused by the server being overloaded. Returning `None`.")
+                    
+                    return
 
                 # Store the mime of the document.
                 mime = 'application/pdf'
