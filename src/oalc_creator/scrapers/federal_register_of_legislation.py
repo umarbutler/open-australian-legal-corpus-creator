@@ -93,6 +93,7 @@ class FederalRegisterOfLegislation(Scraper):
         total_pages = ceil(total_docs/self._docs_per_serp)
         
         # Generate requests for every page of results.
+        # NOTE It is extremely important that we include `orderby = searchcontexts/fulltextversion/registeredat%20asc`. Not doing so leads the results to be sorted by relevance and, for whatever reason, relevance seems to be non-deterministic in that, if you go through all the pages, you will find duplicate results, leading to other results being missed. It is possible this occurs because new documents have been added but that is unlikely seeing as this has occured multiple times on different occasions.
         return {
             Request(
                 f"""https://api.prod.legislation.gov.au/v1/titles/search(
@@ -110,6 +111,7 @@ class FederalRegisterOfLegislation(Scraper):
                 )?
                 &$ select = collection, id, name, searchContexts
                 &$ expand = searchContexts($expand=fullTextVersion)
+                &$ orderby = searchcontexts/fulltextversion/registeredat%20asc
                 &$ top = {self._docs_per_serp}
                 &$ skip = {self._docs_per_serp*page}""".replace('\n', '').replace(' ', '') # Remove newlines and spaces that were inserted into the url template for readability.
             )
