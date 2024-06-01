@@ -46,7 +46,7 @@ class Scraper(ABC):
             retry_exceptions (tuple[type[BaseException]], optional): A tuple of exceptions to retry on. Defaults to a tuple of `asyncio.TimeoutError`, `aiohttp.ClientConnectorError`, `aiohttp.client_exceptions.ServerDisconnectedError`, `aiohttp.client_exceptions.ClientOSError`, `aiohttp.client_exceptions.ClientPayloadError`, and `aiohttp.client_exceptions.ClientResponseError`.
             retry_statuses (tuple[int], optional): A tuple of statuses to retry on. Defaults to an empty tuple.
             thread_pool_executor (ThreadPoolExecutor, optional): A thread pool executor for OCRing PDFs with `tesseract`. Defaults to a new thread pool executor with the same number of threads as the number of logical CPUs on the system minus one, or one if there is only one logical CPU.
-            ocr_semaphore (asyncio.Semaphore, optional): A semaphore for limiting the number of batches of pages of PDFs that may be OCR'd concurrently. Defaults to a semaphore with a limit of 1."""
+            ocr_semaphore (asyncio.Semaphore, optional): A semaphore for limiting the number of PDFs that may be OCR'd concurrently. Defaults to a semaphore with a limit of 1."""
         
         self.source: str = source
         """The name of the source."""
@@ -82,7 +82,7 @@ class Scraper(ABC):
         """A thread pool executor for OCRing PDFs with `tesseract`."""
         
         self.ocr_semaphore: asyncio.Semaphore = ocr_semaphore or asyncio.Semaphore(1)
-        """A semaphore for limiting the number of batches of pages of PDFs that may be OCR'd concurrently."""
+        """A semaphore for limiting the number of PDFs that may be OCR'd concurrently."""
         
         self.ocr_batch_size: int = self.thread_pool_executor._max_workers
         """The number of pages that may be OCR'd concurrently."""

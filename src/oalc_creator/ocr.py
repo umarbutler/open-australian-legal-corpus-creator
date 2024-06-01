@@ -33,7 +33,7 @@ async def pdf2txt(
     pdf = pypdfium2.PdfDocument(pdf)
    
     # OCR every page of the PDF in batches.
-    # NOTE We use batching to avoid going OOM when we convert the pages into images.
+    # NOTE We use batching to avoid going OOM when we convert the pages into images and a sempahore to avoid going OOM when we OCR the images.
     text = []
     
     async with (semaphore or nullcontext()):

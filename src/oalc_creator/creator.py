@@ -56,13 +56,13 @@ class Creator:
             corpus_path (str, optional): The path to the Corpus. Defaults to a file named `corpus.jsonl` in the current working directory.
             data_dir (str, optional): The path to the directory in which Corpus data should be stored. Defaults to the user's data directory as determined by `platformdirs.user_data_dir` (on Windows, this will be `C:/Users/<username>/AppData/Local/Umar Butler/Open Australian Legal Corpus`).
             num_threads (int, optional): The number of threads to use for OCRing PDFs with `tesseract`. Defaults to the number of logical CPUs on the system minus one, or one if there is only one logical CPU.
-            max_concurrent_ocr (int, optional): The maximum number of batches of pages of PDFs that may be OCR'd concurrently. Defaults to 1."""
+            max_concurrent_ocr (int, optional): The maximum number of PDFs that may be OCR'd concurrently. Defaults to 1."""
         
         # Initialise a thread pool executor.
         num_threads = num_threads or multiprocessing.cpu_count() - 1 or 1
         thread_pool_executor = ThreadPoolExecutor(num_threads)
         
-        # Initialise a semaphore for OCRing batches of pages of PDFs.
+        # Initialise a semaphore for limiting the number of PDFs that may be OCR'd concurrently.
         ocr_semaphore = asyncio.Semaphore(max_concurrent_ocr or 1)
 
         # Initialise the scrapers.

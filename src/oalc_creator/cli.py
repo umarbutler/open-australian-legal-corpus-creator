@@ -49,7 +49,7 @@ install(suppress=[rich, click, asyncio])
     '-m', '--max-concurrent-ocr',
     default=1,
     show_default=True,
-    help="The maximum number of batches of pages of PDFs that may be OCR'd concurrently.",
+    help="The maximum number of PDFs that may be OCR'd concurrently",
 )
 def create(sources, output, data_dir, num_threads, max_concurrent_ocr):
     """The creator of the Open Australian Legal Corpus."""
