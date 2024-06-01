@@ -248,7 +248,7 @@ class Creator:
             }
             
             # Deduplicate (and, if necessary, repair) the Corpus and remove any documents that have the same source as the sources being scraped and do not appear in the sources' indices; and also store the version ids of documents not removed from the Corpus in order to later identify missing documents to be added to the Corpus.
-            corpus_version_ids = []
+            corpus_version_ids = set()
             
             with open(self.corpus_path, 'rb') as corpus_file, open(f'{self.corpus_path}.tmp', 'wb') as tmp_file:
                 for i, line in enumerate(corpus_file):
@@ -260,13 +260,12 @@ class Creator:
                         
                         continue
                     
-                    if doc.version_id not in corpus_version_ids and (doc.version_id in entries or doc.source not in self.scrapers):
+                    version_id = doc.version_id
+                    
+                    if version_id not in corpus_version_ids and (version_id in entries or doc.source not in self.scrapers):
                         tmp_file.write(line)
-                        
-                        corpus_version_ids.append(doc.version_id)
+                        corpus_version_ids.add(version_id)
             
-            corpus_version_ids = set(corpus_version_ids)
-
             # Overwrite the Corpus with the temporary file.
             os.replace(f'{self.corpus_path}.tmp', self.corpus_path)
             
