@@ -1,11 +1,12 @@
 ## Changelog 🔄
 All notable changes to the Open Australian Legal Corpus Creator will be documented here. This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [3.0.0] - 2024-06-01
 ### Added
 - Added the `date` field.
-- Added the `mime` field for storing document's MIME types.
-- Started lightly cleaning texts.
+- Added the `mime` field for storing the original MIME type of documents.
+- Began lightly cleaning texts.
+- Introduced the `max_concurrent_ocr` argument to `Creator` and `-m`/`--max-concurrent-ocr` argument to `mkoalc` to limit the maximum number of PDFs that may be OCR'd concurrently.
 
 ### Changed
 - Suffixed the ids of documents in the Western Australian legislation database with their version ids, delimited by a slash, in order to make it easier to track changes to documents.
@@ -17,6 +18,8 @@ All notable changes to the Open Australian Legal Corpus Creator will be document
 - Fixed documents from the Western Australian legislation database never being updated due to the use of the last modified date of the status pages of documents as version ids when the last modified date remained constant for all pages by switching to use the XXH3 64-bit hexidecimal hash of the `main` element of the status pages as version ids.
 - Fixed bug preventing the scraping of documents from the Tasmanian Legislation database due to the improper skipping of documents that contain the substring 'Content Not Found.' and also set the substring to skip on to 'Content Not Found' (without a period, as it is not used by the database).
 - Ensured that warnings are raised when the only version of a document available from the Federal Register of Legislation is a DOC.
+- Fixed a bug preventing the scraping of PDFs from the Federal Register of Legislation database.
+- Fixed a bug causing roughly 5.3k documents to be missed from the Federal Register of Legislation database during indexing as a result of a likely bug in the database.
 
 ### Removed
 - Removed unused `dict2inst` helper function that converted dictionaries to instances of classes.
@@ -96,6 +99,7 @@ All notable changes to the Open Australian Legal Corpus Creator will be document
 - Reduced excessive line breaks in texts.
 - Improved the extraction and cleaning of citations.
 
+[3.0.0]: https://github.com/umarbutler/open-australian-legal-corpus-creator/compare/v2.0.0...v3.0.0
 [2.0.0]: https://github.com/umarbutler/open-australian-legal-corpus-creator/compare/v1.0.1...v2.0.0
 [1.0.1]: https://github.com/umarbutler/open-australian-legal-corpus-creator/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/umarbutler/open-australian-legal-corpus-creator/compare/v0.1.2...v1.0.0
