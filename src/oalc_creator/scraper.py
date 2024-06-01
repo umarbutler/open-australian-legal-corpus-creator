@@ -78,6 +78,9 @@ class Scraper(ABC):
         self.wait_base: int = 1.25
         """The exponential backoff base."""
         
+        self.max_extra_jitter: int = 0.05
+        """The maximum amount of extra jitter to add to the wait time even when the wait time has been capped."""
+        
         self.thread_pool_executor: ThreadPoolExecutor = thread_pool_executor or ThreadPoolExecutor(multiprocessing.cpu_count() - 1 or 1)
         """A thread pool executor for OCRing PDFs with `tesseract`."""
         
@@ -129,10 +132,13 @@ class Scraper(ABC):
                 # Set our jitter to a random number between 0 and `wait`.
                 jitter = random.uniform(0, wait)
                 
-                wait = wait + jitter
+                wait += jitter
                 
                 # If `wait` is greater than `self.max_wait`, set `wait` to `self.max_wait`.
                 wait = min(wait, self.max_wait)
+
+                # Add a little extra jitter to the wait time to handle cases where `wait` has been capped at `self.max_wait`.
+                wait += random.uniform(0, self.max_extra_jitter)
                 
                 # Wait for `wait` seconds.
                 await asyncio.sleep(wait)
@@ -194,11 +200,14 @@ class Scraper(ABC):
                 
                 # Set our jitter to a random number between 0 and `wait`.
                 jitter = random.uniform(0, wait)
-                
-                wait = wait + jitter
+
+                wait += jitter
                 
                 # If `wait` is greater than `self.max_wait`, set `wait` to `self.max_wait`.
                 wait = min(wait, self.max_wait)
+                
+                # Add a little extra jitter to the wait time to handle cases where `wait` has been capped at `self.max_wait`.
+                wait += random.uniform(0, self.max_extra_jitter)
                 
                 # Wait for `wait` seconds.
                 await asyncio.sleep(wait)
