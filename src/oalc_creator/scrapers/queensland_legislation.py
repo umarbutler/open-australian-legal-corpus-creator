@@ -160,7 +160,7 @@ class QueenslandLegislation(Scraper):
             resp = (await self.get(Request(url))).stream
             
             # Extract the text of the document from the PDF with OCR.
-            text = await pdf2txt(resp, self.ocr_batch_size, self.thread_pool_executor)
+            text = await pdf2txt(resp, self.ocr_batch_size, self.thread_pool_executor, self.ocr_semaphore)
             
             # Store the mime of the document.
             mime = 'application/pdf'
