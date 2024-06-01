@@ -142,7 +142,7 @@ class QueenslandLegislation(Scraper):
         resp: Response = await self.get(entry.request)
         
         # Try extracting the date if its not available.
-        if not date and (match := re.search(r'publication.date="(\d{4}-\d{1,2}-\d{1,2})"', resp.text, re.IGNORECASE)):
+        if not date and (match := re.search(r'publication.date="(\d{4}-\d{1,2}-\d{1,2})"', resp.text, flags=re.IGNORECASE)):
             date = match.group(1)
         
         # If error 404 is encountered, return `None`.

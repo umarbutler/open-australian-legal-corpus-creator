@@ -227,7 +227,7 @@ class FederalCourtOfAustralia(Scraper):
         # If a date was not extracted for the document from the index, attempt to extract it from the text of the document using regex.
         date = entry.date
         
-        if not date and (match := re.search(r'(?:(?:date of (?:decision|judgment|judgement|determination)(?: delivery)?)|(?:(?:decision|judgment|judgement|determination) date)|(?:ex tempore)|(?:\ndate)) *:?\s*(\d{1,2}(?:\/| )(?:\d{1,2}|[a-z]+)(?:\/| )\d{4})', text, re.IGNORECASE)):
+        if not date and (match := re.search(r'(?:(?:date of (?:decision|judgment|judgement|determination)(?: delivery)?)|(?:(?:decision|judgment|judgement|determination) date)|(?:ex tempore)|(?:\ndate)) *:?\s*(\d{1,2}(?:\/| )(?:\d{1,2}|[a-z]+)(?:\/| )\d{4})', text, flags=re.IGNORECASE)):
             date = format_date(match.group(1))
 
         # Return the document.
