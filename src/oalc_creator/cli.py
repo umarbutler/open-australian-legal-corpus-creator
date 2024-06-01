@@ -45,7 +45,13 @@ install(suppress=[rich, click, asyncio])
     show_default=True,
     help='The number of threads to use for OCRing PDFs with `tesseract`.',
 )
-def create(sources, output, data_dir, num_threads):
+@click.option(
+    '-m', '--max-concurrent-ocr',
+    default=1,
+    show_default=True,
+    help="The maximum number of batches of pages of PDFs that may be OCR'd concurrently.",
+)
+def create(sources, output, data_dir, num_threads, max_concurrent_ocr):
     """The creator of the Open Australian Legal Corpus."""
     
     # Convert `sources` to a list of source names.
@@ -56,7 +62,8 @@ def create(sources, output, data_dir, num_threads):
         sources=sources,
         corpus_path=output,
         data_dir=data_dir,
-        num_threads=num_threads
+        num_threads=num_threads,
+        max_concurrent_ocr=max_concurrent_ocr,
     ).create())
 
 if __name__ == '__main__':

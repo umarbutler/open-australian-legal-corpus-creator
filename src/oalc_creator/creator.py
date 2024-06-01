@@ -1,6 +1,7 @@
 import os
 import random
 import shutil
+import asyncio
 import os.path
 import pathlib
 import multiprocessing
@@ -46,6 +47,7 @@ class Creator:
                  corpus_path: str = None,
                  data_dir: str = None,
                  num_threads: int = None,
+                 max_concurrent_ocr: int = None,
                  ) -> None:
         """Initialise the creator of the Open Australian Legal Corpus.
         
@@ -53,16 +55,24 @@ class Creator:
             sources (Iterable[str | Scraper], optional): The names of the sources to be scraped or the scrapers themselves. Possible sources are `federal_court_of_australia`, `federal_register_of_legislation`, `high_court_of_australia`, `nsw_caselaw`, `nsw_legislation`, `queensland_legislation`, `south_australian_legislation`, `western_australian_legislation` and `tasmanian_legislation`. Defaults to all supported sources.
             corpus_path (str, optional): The path to the Corpus. Defaults to a file named `corpus.jsonl` in the current working directory.
             data_dir (str, optional): The path to the directory in which Corpus data should be stored. Defaults to the user's data directory as determined by `platformdirs.user_data_dir` (on Windows, this will be `C:/Users/<username>/AppData/Local/Umar Butler/Open Australian Legal Corpus`).
-            num_threads (int, optional): The number of threads to use for OCRing PDFs with `tesseract`. Defaults to the number of logical CPUs on the system minus one, or one if there is only one logical CPU."""
+            num_threads (int, optional): The number of threads to use for OCRing PDFs with `tesseract`. Defaults to the number of logical CPUs on the system minus one, or one if there is only one logical CPU.
+            max_concurrent_ocr (int, optional): The maximum number of batches of pages of PDFs that may be OCR'd concurrently. Defaults to 1."""
         
-        # Initialise a thread pool executor if any of the scrapers are names and not instances of `Scraper`.
-        if any(not isinstance(source, Scraper) for source in sources or {}):
-            num_threads = num_threads or multiprocessing.cpu_count() - 1 or 1
-            thread_pool_executor = ThreadPoolExecutor(num_threads)
+        # Initialise a thread pool executor.
+        num_threads = num_threads or multiprocessing.cpu_count() - 1 or 1
+        thread_pool_executor = ThreadPoolExecutor(num_threads)
+        
+        # Initialise a semaphore for OCRing batches of pages of PDFs.
+        ocr_semaphore = asyncio.Semaphore(max_concurrent_ocr or 1)
 
-        # Initialise scrapers.
+        # Initialise the scrapers.
         sources = sources or SOURCES.keys()
-        self.scrapers = {(SOURCES[source](thread_pool_executor = thread_pool_executor) if not isinstance(source, Scraper) else source) for source in sources}
+        self.scrapers = {(SOURCES[source]() if not isinstance(source, Scraper) else source) for source in sources}
+        
+        for scraper in self.scrapers:
+            scraper.thread_pool_executor = thread_pool_executor
+            scraper.ocr_semaphore = ocr_semaphore
+        
         self.scrapers: dict[str, Scraper] = {scraper.source : scraper for scraper in self.scrapers}
         """A map of the names of sources to their scrapers."""
 

@@ -31,6 +31,7 @@ class FederalCourtOfAustralia(Scraper):
                  semaphore: asyncio.Semaphore = None,
                  session: aiohttp.ClientSession = None,
                  thread_pool_executor: ThreadPoolExecutor = None,
+                 ocr_semaphore: asyncio.Semaphore = None,
                  ) -> None:
         super().__init__(
             source='federal_court_of_australia',
@@ -38,7 +39,8 @@ class FederalCourtOfAustralia(Scraper):
             index_refresh_interval=index_refresh_interval,
             semaphore=semaphore or asyncio.Semaphore(10), # Employ a lower semaphore limit to avoid overloading the database.
             thread_pool_executor=thread_pool_executor,
-            session=session
+            session=session,
+            ocr_semaphore=ocr_semaphore
         )
         
         # Remove `aiohttp.client_exceptions.ClientPayloadError` from the list of exceptions to retry on as we need to handle it in `self.get_index` and retrying on it would just waste time since it is not a transient error.
@@ -217,7 +219,7 @@ class FederalCourtOfAustralia(Scraper):
             
             case 'application/pdf':
                 # Extract the text of the document from the PDF with OCR.
-                text = await pdf2txt(resp.stream, self.ocr_batch_size, self.thread_pool_executor)
+                text = await pdf2txt(resp.stream, self.ocr_batch_size, self.thread_pool_executor, self.ocr_semaphore)
                 
             case _:
                 raise ValueError(f'Unable to retrieve document from {url}. Invalid content type: {resp.type}.')

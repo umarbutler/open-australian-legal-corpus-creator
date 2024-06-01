@@ -24,10 +24,11 @@ The Creator's default behaviour may be modified by passing the following optiona
 * `-o`/`--output`: The path to the Corpus. Defaults to a file named `corpus.jsonl` in the current working directory.
 * `-d`/`--data_dir`: The path to the directory in which Corpus data should be stored. Defaults to the user's data directory as determined by [`platformdirs.user_data_dir`](https://github.com/platformdirs/platformdirs#the-problem) (on Windows, this will be `C:/Users/<username>/AppData/Local/Umar Butler/Open Australian Legal Corpus`).
 * `-n`/`--num_threads`: The number of threads to use for OCRing PDFs with `tesseract`. Defaults to the number of logical CPUs on the system minus one, or one if there is only one logical CPU.
+* `m`/`--max-concurrent-ocr`: The maximum number of batches of pages of PDFs that may be OCR'd concurrently. Defaults to 1.
 
-As an example, if you wanted to output the Corpus to `~/corpus/oalc.jsonl`, save Corpus data to `~/app_data/oalc/`, scrape only the Federal Court of Australia and Federal Register of Legislation, and use 8 threads for OCRing PDFs, you would run:
+As an example, if you wanted to output the Corpus to `~/corpus/oalc.jsonl`, save Corpus data to `~/app_data/oalc/` and scrape only the Federal Court of Australia and Federal Register of Legislation, you would run:
 ```bash
-mkoalc -s federal_court_of_australia,federal_register_of_legislation -o ~/corpus/oalc.jsonl -d ~/app_data/oalc/ -n 8
+mkoalc -s federal_court_of_australia,federal_register_of_legislation -o ~/corpus/oalc.jsonl -d ~/app_data/oalc/
 ```
 
 For even greater control over the Creator's behaviour, you may also access it from the `oalc_creator` Python package:
@@ -40,7 +41,6 @@ creator = Creator(
     sources=['federal_court_of_australia', 'federal_register_of_legislation'],
     corpus_path='~/corpus/oalc.jsonl',
     data_dir='~/app_data/oalc/',
-    num_threads=8,
 )
 
 # Create or update the Corpus.

@@ -27,7 +27,8 @@ class NswCaselaw(Scraper):
                  index_refresh_interval: bool | timedelta = None,
                  semaphore: asyncio.Semaphore = None,
                  session: aiohttp.ClientSession = None,
-                 thread_pool_executor: ThreadPoolExecutor = None
+                 thread_pool_executor: ThreadPoolExecutor = None,
+                 ocr_semaphore: asyncio.Semaphore = None,
                  ) -> None:        
         super().__init__(
             source='nsw_caselaw',
@@ -35,7 +36,8 @@ class NswCaselaw(Scraper):
             index_refresh_interval=index_refresh_interval,
             semaphore=semaphore or asyncio.Semaphore(10), # Employ a lower semaphore limit to avoid overloading the NSW Caselaw database.
             session=session,
-            thread_pool_executor=thread_pool_executor
+            thread_pool_executor=thread_pool_executor,
+            ocr_semaphore=ocr_semaphore
         )
 
         self._jurisdiction = 'new_south_wales'
@@ -114,7 +116,7 @@ class NswCaselaw(Scraper):
             # Raise a `ParseError` if the PDF can't be loaded.
             try:
                 # Extract the text of the document from the PDF with OCR.
-                text = await pdf2txt(resp.stream, self.ocr_batch_size, self.thread_pool_executor)
+                text = await pdf2txt(resp.stream, self.ocr_batch_size, self.thread_pool_executor, self.ocr_semaphore)
                 
             except Exception as e:
                 raise ParseError(f'Unable to extract text from PDF at {url}.') from e

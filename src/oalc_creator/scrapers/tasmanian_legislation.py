@@ -28,6 +28,7 @@ class TasmanianLegislation(Scraper):
                  semaphore: asyncio.Semaphore = None,
                  session: aiohttp.ClientSession = None,
                  thread_pool_executor: ThreadPoolExecutor = None,
+                 ocr_semaphore: asyncio.Semaphore = None,
                  ) -> None:
         super().__init__(
             source='tasmanian_legislation',
@@ -36,6 +37,7 @@ class TasmanianLegislation(Scraper):
             semaphore=semaphore,
             session=session,
             thread_pool_executor=thread_pool_executor,
+            ocr_semaphore=ocr_semaphore
         )
 
         self._jurisdiction = 'tasmania'

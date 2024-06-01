@@ -27,7 +27,8 @@ class NswLegislation(Scraper):
                  index_refresh_interval: bool | timedelta = None,
                  semaphore: asyncio.Semaphore = None,
                  session: aiohttp.ClientSession = None,
-                 thread_pool_executor: ThreadPoolExecutor = None
+                 thread_pool_executor: ThreadPoolExecutor = None,
+                 ocr_semaphore: asyncio.Semaphore = None,
                  ) -> None:
         super().__init__(
             source='nsw_legislation',
@@ -35,7 +36,8 @@ class NswLegislation(Scraper):
             index_refresh_interval=index_refresh_interval,
             semaphore=semaphore,
             session=session,
-            thread_pool_executor=thread_pool_executor
+            thread_pool_executor=thread_pool_executor,
+            ocr_semaphore=ocr_semaphore,
         )
 
         self._jurisdiction = 'new_south_wales'
@@ -168,7 +170,7 @@ class NswLegislation(Scraper):
             
             case 'application/pdf':
                 # Extract the text of the document from the PDF with OCR.
-                text = await pdf2txt(resp.stream, self.ocr_batch_size, self.thread_pool_executor)
+                text = await pdf2txt(resp.stream, self.ocr_batch_size, self.thread_pool_executor, self.ocr_semaphore)
             
             case _:
                 raise ValueError(f'Unable to retrieve document from {entry.request.path}. Invalid content type: {resp.type}.')
