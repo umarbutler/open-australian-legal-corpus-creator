@@ -16,7 +16,7 @@ from inscriptis.model.html_element import HtmlElement
 
 from ..ocr import pdf2txt
 from ..data import Entry, Request, Document, make_doc
-from ..helpers import log, batch_generator
+from ..helpers import log, warning
 from ..scraper import Scraper
 from ..custom_mammoth import docx2html
 from ..custom_inscriptis import CustomInscriptis, CustomParserConfig
@@ -49,8 +49,8 @@ class HighCourtOfAustralia(Scraper):
         # NOTE We increase our wait times to account for the High Court of Australia database's rate limiting.
         self.stop_after_waiting += 30 * 60
         self.max_wait += 5 * 60
-        self.wait_base += 1
-        
+        self.wait_base += 2
+
         # Create a custom Inscriptis CSS profile.
         inscriptis_profile = CSS_PROFILES['strict'].copy()
 
@@ -76,7 +76,7 @@ class HighCourtOfAustralia(Scraper):
 
         # Generate requests for every base search engine results page ('SERP').
         # NOTE `col=0` is for the 'Judgments (2000-current)' collection, `col=1` for 'Judgments (1948-1999)', `col=2` for 'One-100 Project' and `historical/search?col=0` is for the 'Unreported Judgments' collection.
-        base_serps = {f'https://eresources.hcourt.gov.au/search?col={dataset_id}&filter_4=0+TO+{year}' for dataset_id in range(0,3)} | {f'https://eresources.hcourt.gov.au/historical/search?col=0&filter_4=0+TO+{year}'}
+        base_serps = {f'https://eresources.hcourt.gov.au/search?col={dataset_id}&filter_4=0+TO+{year}' for dataset_id in range(0, 3)} | {f'https://eresources.hcourt.gov.au/historical/search?col=0&filter_4=0+TO+{year}'}
 
         # Generate requests for every page of every base SERP.
         index_reqs = await asyncio.gather(*[self._get_index_reqs_from_base_serp(base_serp) for base_serp in base_serps])
@@ -143,6 +143,8 @@ class HighCourtOfAustralia(Scraper):
 
             # Return `None` if the document is missing.
             if b'Document could not be found' in resp or b'There were no matching cases.' in resp:
+                warning(f"Unable to extract text from '{entry.request.path}' as it appears to be missing. Returning `None`.")
+                
                 return
 
         else:
@@ -183,8 +185,9 @@ class HighCourtOfAustralia(Scraper):
 
             case 'PDF':
                 # Extract the text of the document from the PDF with OCR.
-                text = await pdf2txt(resp.stream, self.ocr_batch_size, self.thread_pool_executor)
-                
+                # NOTE We use a scale of 2 instead of the default of 3 because the PDFs on the High Court of Australia database are *extremely* slow to OCR.
+                text = await pdf2txt(resp.stream, self.ocr_batch_size, self.thread_pool_executor, self.ocr_semaphore, scale=2)
+
                 # Store the mime of the document.
                 mime = 'application/pdf'
 
