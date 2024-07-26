@@ -1,6 +1,10 @@
 ## Changelog 🔄
 All notable changes to the Open Australian Legal Corpus Creator will be documented here. This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.1] - 2024-07-26
+### Fixed
+- Fixed a bug that caused the earliest versions of documents from the Federal Register of Legislation not available in a HTML format to be scraped instead of their latest versions.
+
 ## [3.0.0] - 2024-06-01
 ### Added
 - Added the `date` field.

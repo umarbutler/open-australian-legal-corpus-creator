@@ -222,7 +222,7 @@ class FederalRegisterOfLegislation(Scraper):
         
         # If there is no link to the document's HTML full text, search for other versions of the document.
         else:
-            url = f'{entry.request.path}/asmade/downloads'
+            url = f'{entry.request.path}/latest/downloads'
             downloads_page = await self.get(url)
             downloads_page_etree = lxml.html.document_fromstring(downloads_page)
             
