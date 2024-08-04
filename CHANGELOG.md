@@ -1,6 +1,10 @@
 ## Changelog 🔄
 All notable changes to the Open Australian Legal Corpus Creator will be documented here. This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.2] - 2024-08-04
+### Fixed
+- Fixed a bug that caused only the first volume of multivolume documents on the Federal Register of Legislation available in a HTML format to be scraped instead of all volumes.
+
 ## [3.0.1] - 2024-07-26
 ### Fixed
 - Fixed a bug that caused the earliest versions of documents from the Federal Register of Legislation not available in a HTML format to be scraped instead of their latest versions.
@@ -103,6 +107,7 @@ All notable changes to the Open Australian Legal Corpus Creator will be document
 - Reduced excessive line breaks in texts.
 - Improved the extraction and cleaning of citations.
 
+[3.0.2]: https://github.com/umarbutler/open-australian-legal-corpus-creator/compare/v3.0.1...v3.0.2
 [3.0.1]: https://github.com/umarbutler/open-australian-legal-corpus-creator/compare/v3.0.0...v3.0.1
 [3.0.0]: https://github.com/umarbutler/open-australian-legal-corpus-creator/compare/v2.0.0...v3.0.0
 [2.0.0]: https://github.com/umarbutler/open-australian-legal-corpus-creator/compare/v1.0.1...v2.0.0

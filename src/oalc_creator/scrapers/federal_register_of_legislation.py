@@ -201,21 +201,27 @@ class FederalRegisterOfLegislation(Scraper):
         # Retrieve the document's status page.
         status_page = await self.get(entry.request)
         
-        # Extract the link to the document's HTML full text if it exists otherwise search for other versions of the document.
-        url = re.search(r'<iframe[^>]+name="epubFrame"[^>]+src="([^"]+)">', status_page.text)
+        # Extract the links to the HTML full text of the document's constituent parts if they exist otherwise search for other versions of the document.        
+        urls = re.findall(r'href="([^"]+)" target="epubFrame"', status_page.text)
+        urls = [url.split('#')[0] for url in urls] # Remove any anchors from the urls, which will assist with deduplication.
         
-        # Retrieve and parse the document's HTML full text if it is available.
-        if url:
-            url = url.group(1)
+        if not urls: # If no links to the HTML full text of the document's constituent parts could be found (in the navigation pane), search for a link to the HTML full text of the first part of the document (in the HTML icon in the header of the text viewer) if that exists.
+            urls = re.findall(r'<iframe[^>]+name="epubFrame"[^>]+src="([^"]+)">', status_page.text)
+        
+        urls = list(dict.fromkeys(urls)) # Remove duplicate urls.
+        
+        if urls:
+            # If there is a single part, use its link as the url otherwise use the document's status page as its url.
+            url = urls[0] if len(urls) == 1 else entry.request.path
 
-            # Retrieve the document's full text.
-            resp = await self.get(url)
+            # Retrieve the full text of the document's constituent parts.
+            resps = await asyncio.gather(*[self.get(url) for url in urls])
             
-            # Create an etree from the response.
-            etree = lxml.html.document_fromstring(resp)
+            # Create etrees from the responses.
+            etrees = [lxml.html.document_fromstring(resp) for resp in resps]
                 
-            # Extract the text of the document.
-            text = CustomInscriptis(etree, self._inscriptis_config).get_text()
+            # Extract the text of the document's constituent parts.
+            texts = [CustomInscriptis(etree, self._inscriptis_config).get_text() for etree in etrees]
 
             # Store the mime of the document.
             mime = 'text/html'
@@ -311,8 +317,8 @@ class FederalRegisterOfLegislation(Scraper):
                 # Store the mime of the document.
                 mime = 'application/pdf'
 
-            # Stitch together the version's parts to form the full text of the version.
-            text = '\n'.join(texts)
+        # Stitch together the version's parts to form the full text of the version.
+        text = '\n'.join(texts)
             
         # Return the document.
         return make_doc(
