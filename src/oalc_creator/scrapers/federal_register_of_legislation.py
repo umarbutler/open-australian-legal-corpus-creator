@@ -205,7 +205,7 @@ class FederalRegisterOfLegislation(Scraper):
         urls = re.findall(r'href="([^"]+)" target="epubFrame"', status_page.text)
         urls = [url.split('#')[0] for url in urls] # Remove any anchors from the urls, which will assist with deduplication.
         
-        if not urls: # If no links to the HTML full text of the document's constituent parts could be found (in the navigation pane), search for a link to the HTML full text of the first part of the document (in the HTML icon in the header of the text viewer) if that exists.
+        if not urls: # If no links to the HTML full text of the document's constituent parts could be found (in the navigation pane), search for a link to the HTML full text of the first part of the document (in the text viewer's iframe) if that exists.
             urls = re.findall(r'<iframe[^>]+name="epubFrame"[^>]+src="([^"]+)">', status_page.text)
         
         urls = list(dict.fromkeys(urls)) # Remove duplicate urls.
