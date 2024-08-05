@@ -143,37 +143,43 @@ class NswLegislation(Scraper):
             
             return
         
-        match resp.type:
-            case 'text/html':
-                # If the response contains the substring 'No fragments found.', then return `None` as there is a bug in the NSW Legislation database preventing the retrieval of certain documents (see, eg, https://legislation.nsw.gov.au/view/whole/html/inforce/2021-03-25/act-1944-031).
-                if 'No fragments found.' in resp.text:
-                    warning(f"Unable to retrieve document from {entry.request.path}. 'No fragments found.' encountered in the response, indicating that the document is missing from the NSW Legislation database. Returning `None`.")
-                    return
-                
-                # Create an etree from the response.
+        resp_type = resp.type
+        
+        if resp_type == 'text/html':
+            # If the response contains the substring 'No fragments found.', then return `None` as there is a bug in the NSW Legislation database preventing the retrieval of certain documents (see, eg, https://legislation.nsw.gov.au/view/whole/html/inforce/2021-03-25/act-1944-031).
+            if 'No fragments found.' in resp.text:
+                warning(f"Unable to retrieve document from {entry.request.path}. 'No fragments found.' encountered in the response, indicating that the document is missing from the NSW Legislation database. Returning `None`.")
+                return
+            
+            # Create an etree from the response if a UnicodeDecodeError is not encountered otherwise assume that the document is a PDF.
+            try:
                 etree = lxml.html.fromstring(resp.text)
-                
-                # Select the element containing the text of the document.
-                text_elm = etree.xpath('//div[@id="frag-col"]')[0]
-                
-                # Remove the toolbar.
-                text_elm.xpath('//div[@id="fragToolbar"]')[0].drop_tree()
-                
-                # Remove the search results (they are supposed to be hidden by Javascript).
-                text_elm.xpath('//div[@class="nav-result display-none"]')[0].drop_tree()
-
-                # Remove footnotes (they are supposed to be hidden by Javascript).
-                for elm in text_elm.xpath("//*[contains(concat(' ', normalize-space(@class), ' '), ' view-history-note ')]"): elm.drop_tree()
-
-                # Extract the text of the document.
-                text = CustomInscriptis(text_elm, self._inscriptis_config).get_text()
             
-            case 'application/pdf':
-                # Extract the text of the document from the PDF with OCR.
-                text = await pdf2txt(resp.stream, self.ocr_batch_size, self.thread_pool_executor, self.ocr_semaphore)
+            except UnicodeDecodeError:
+                resp_type = 'application/pdf'
             
-            case _:
-                raise ValueError(f'Unable to retrieve document from {entry.request.path}. Invalid content type: {resp.type}.')
+        if resp_type == 'text/html':
+            # Select the element containing the text of the document.
+            text_elm = etree.xpath('//div[@id="frag-col"]')[0]
+            
+            # Remove the toolbar.
+            text_elm.xpath('//div[@id="fragToolbar"]')[0].drop_tree()
+            
+            # Remove the search results (they are supposed to be hidden by Javascript).
+            text_elm.xpath('//div[@class="nav-result display-none"]')[0].drop_tree()
+
+            # Remove footnotes (they are supposed to be hidden by Javascript).
+            for elm in text_elm.xpath("//*[contains(concat(' ', normalize-space(@class), ' '), ' view-history-note ')]"): elm.drop_tree()
+
+            # Extract the text of the document.
+            text = CustomInscriptis(text_elm, self._inscriptis_config).get_text()
+            
+        elif 'application/pdf':
+            # Extract the text of the document from the PDF with OCR.
+            text = await pdf2txt(resp.stream, self.ocr_batch_size, self.thread_pool_executor, self.ocr_semaphore)
+            
+        else:
+            raise ValueError(f'Unable to retrieve document from {entry.request.path}. Invalid content type: {resp_type}.')
         
         # Return the document.
         return make_doc(
@@ -181,7 +187,7 @@ class NswLegislation(Scraper):
             type=entry.type,
             jurisdiction=entry.jurisdiction,
             source=entry.source,
-            mime=resp.type,
+            mime=resp_type,
             date=entry.date,
             citation=entry.title,
             url=entry.request.path,

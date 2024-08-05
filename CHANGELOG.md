@@ -1,6 +1,10 @@
 ## Changelog 🔄
 All notable changes to the Open Australian Legal Corpus Creator will be documented here. This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.3] - 2024-08-05
+### Fixed
+- Fixed a bug preventing the scraping of documents from the NSW Legislation database that are stored as PDFs but are reported by the database's web server as being HTML files.
+
 ## [3.0.2] - 2024-08-04
 ### Fixed
 - Fixed a bug that caused only the first volume of multivolume documents on the Federal Register of Legislation available in a HTML format to be scraped instead of all volumes.

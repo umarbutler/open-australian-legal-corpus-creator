@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "oalc-creator"
-version = "3.0.2"
+version = "3.0.3"
 authors = [
   {name="Umar Butler", email="umar@umar.au"},
 ]
@@ -66,6 +66,7 @@ dependencies = [
     "uvloop; platform_system != 'Windows'",
     "tesserocr",
     "pypdfium2",
+    "pillow",
 ]
 
 [project.urls]
