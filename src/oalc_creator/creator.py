@@ -247,28 +247,41 @@ class Creator:
                 for entry in entries.entries
             }
             
-            # Deduplicate (and, if necessary, repair) the Corpus and remove any documents that have the same source as the sources being scraped and do not appear in the sources' indices; and also store the version ids of documents not removed from the Corpus in order to later identify missing documents to be added to the Corpus.
+            # Index the version ids of documents in the Corpus from the desired sources in order to later identify missing documents to be added to the Corpus and also determine whether it is necessary to deduplicate, repair and/or remove outdated documents (in particular, documents that have the same source as the sources being scraped and do not appear in the sources' indices) from the Corpus.
             corpus_version_ids = set()
+            corpus_line_numbers_to_remove = set()
             
-            with open(self.corpus_path, 'rb') as corpus_file, open(f'{self.corpus_path}.tmp', 'wb') as tmp_file:
+            with open(self.corpus_path, 'rb') as corpus_file:
                 for i, line in enumerate(corpus_file):
                     try:
                         doc = document_decoder(line)
                     
                     except DecodeError as e:
                         warning(f"Failed to decode document #{i + 1:,} when loading the Corpus. The error encountered was: '{e}'. The document will be treated as corrupted and will be removed from the Corpus.")
-                        
+                        corpus_line_numbers_to_remove.add(i)
                         continue
                     
                     version_id = doc.version_id
+                    source = doc.source
                     
-                    if version_id not in corpus_version_ids and (version_id in entries or doc.source not in self.scrapers):
-                        tmp_file.write(line)
+                    if version_id in corpus_version_ids or (version_id not in entries and source in self.scrapers):
+                        corpus_line_numbers_to_remove.add(i)
+                    
+                    elif source in self.scrapers:
                         corpus_version_ids.add(version_id)
             
-            # Overwrite the Corpus with the temporary file.
-            os.replace(f'{self.corpus_path}.tmp', self.corpus_path)
+            # Deduplicate, repair and/or remove outdated documents (in particular, documents that have the same source as the sources being scraped and do not appear in the sources' indices) from the Corpus.
+            if corpus_line_numbers_to_remove:
+                console.print('\nDeduplicating, repairing and/or removing outdated documents from the Corpus.', style='light_cyan1 bold')
+                
+                with open(self.corpus_path, 'rb') as corpus_file, open(f'{self.corpus_path}.tmp', 'wb') as tmp_file:
+                    for i, line in enumerate(corpus_file):
+                        if i not in corpus_line_numbers_to_remove:
+                            tmp_file.write(line)
             
+                # Overwrite the Corpus with the temporary file.
+                os.replace(f'{self.corpus_path}.tmp', self.corpus_path)
+                
             # Identify missing documents by filtering out from the document entries any documents that already appear in the Corpus.
             missing_entries = [scraper_entry for version_id, scraper_entry in entries.items() if version_id not in corpus_version_ids]
             

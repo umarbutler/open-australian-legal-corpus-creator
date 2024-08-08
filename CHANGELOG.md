@@ -1,6 +1,10 @@
 ## Changelog 🔄
 All notable changes to the Open Australian Legal Corpus Creator will be documented here. This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.4] - 2024-08-08
+### Fixed
+- Fixed the fact that, when the Creator was run, it would unnecessarily rewrite the entire Corpus in order to detect and remove duplicates, outdated documents and otherwise repair it (which caused excessive writes and overwore disks) by instead first reading the Corpus and then only overwriting it if found necessary as, although this can sometimes double read time, reading is much cheaper on SSDs (which most modern drives are) than writing ([#2](https://github.com/umarbutler/open-australian-legal-corpus-creator/issues/2)).
+
 ## [3.0.3] - 2024-08-05
 ### Fixed
 - Fixed a bug preventing the scraping of documents from the NSW Legislation database that are stored as PDFs but are reported by the database's web server as being HTML files.
