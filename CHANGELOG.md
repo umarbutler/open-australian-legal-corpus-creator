@@ -115,6 +115,7 @@ All notable changes to the Open Australian Legal Corpus Creator will be document
 - Reduced excessive line breaks in texts.
 - Improved the extraction and cleaning of citations.
 
+[3.0.4]: https://github.com/umarbutler/open-australian-legal-corpus-creator/compare/v3.0.3...v3.0.4
 [3.0.3]: https://github.com/umarbutler/open-australian-legal-corpus-creator/compare/v3.0.2...v3.0.3
 [3.0.2]: https://github.com/umarbutler/open-australian-legal-corpus-creator/compare/v3.0.1...v3.0.2
 [3.0.1]: https://github.com/umarbutler/open-australian-legal-corpus-creator/compare/v3.0.0...v3.0.1
