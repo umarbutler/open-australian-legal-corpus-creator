@@ -82,7 +82,12 @@ class HighCourtOfAustralia(Scraper):
 
         # Generate requests for every base search engine results page ('SERP').
         # NOTE `col=0` is for the 'Judgments (2000-current)' collection, `col=1` for 'Judgments (1948-1999)', `col=2` for 'One-100 Project' and `historical/search?col=0` is for the 'Unreported Judgments' collection.
-        base_serps = {f'https://eresources.hcourt.gov.au/search?col={dataset_id}&filter_4=0+TO+{year}' for dataset_id in range(0, 3)} | {f'https://eresources.hcourt.gov.au/historical/search?col=0&filter_4=0+TO+{year}'}
+        base_serps = [
+            f'https://www.hcourt.gov.au/cases-and-judgments/judgments/judgments-2000-current',
+            f'https://www.hcourt.gov.au/cases-and-judgments/judgments/single-justice-judgments',
+            f'https://www.hcourt.gov.au/cases-and-judgments/judgments/1-clr-100-clr',
+            f'https://www.hcourt.gov.au/cases-and-judgments/judgments/unreported-judgments',
+        ]
 
         # Generate requests for every page of every base SERP.
         index_reqs = await asyncio.gather(*[self._get_index_reqs_from_base_serp(base_serp) for base_serp in base_serps])
@@ -98,7 +103,19 @@ class HighCourtOfAustralia(Scraper):
         resp = (await self.get(base_serp)).text
 
         # Determine the number of pages in the base SERP.
-        pages = int(re.search(r'<span\s+id="lastItem"\s*>(\d+)</span\s*>', resp).group(1).replace(',', '').replace(' ', ''))
+        # First try the current pagination format with pager__link
+        pager_match = re.search(r'<a[^>]+href="\?page=(\d+)"[^>]*title="Go to last page"', resp)
+        if pager_match:
+            pages = int(pager_match.group(1))
+        else:
+            # Fallback to the old format
+            old_format_match = re.search(r'<span\s+id="lastItem"\s*>(\d+)</span\s*>', resp)
+            if old_format_match:
+                pages = int(old_format_match.group(1).replace(',', '').replace(' ', ''))
+            else:
+                # If no pagination found, assume single page
+                warning(f"Could not determine pagination for {base_serp}, assuming single page")
+                pages = 1
 
         # Generate requests for every page of the base SERP.
         return {Request(f'{base_serp}&page={page}') for page in range(1, pages + 1)}
